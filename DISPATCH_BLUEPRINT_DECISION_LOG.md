@@ -152,4 +152,21 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 7: Security Foundation — build approved, design narrowed, executed
+
+**Stage:** Stage 7 — Security Foundation (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Approved by:** Mike (owner)
+**Approval, verbatim (build authorization):** "Approve Stage 7 build"
+**Design Review, verbatim:** "Stage 7 Design Review\nDo not implement yet.\nModify one area before approval:\nDo not require PIN authentication for every Portal page in the initial Security Foundation build.\nSplit the design conceptually into:\nSecurity Foundation:\n* Identity\n* PIN\n* Session\n* Role\n* Audit\n* Approval Events\n* Security Sub-Library\nand\nPortal-Wide Enforcement:\n* broader page protection\n* wider access restrictions\nKeep informational browsing behavior unchanged in the first implementation unless access to that page creates an actual authority or security risk.\nPreserve:\n* existing phone approval workflow\n* existing HMAC convenience links\nLayer identity on top rather than replacing proven workflows.\nThe distinction between file-integrity hashing and PIN credential hashing is accepted.\nRevise the design accordingly and return the updated design before implementation approval."
+**Design revision:** `DISPATCH_STAGE7_SECURITY_FOUNDATION_DESIGN_v1.md` rewritten to split Security Foundation (Identity, PIN, Session, Role, Audit, Approval Events capability, Security Sub-Library mechanism) from Portal-Wide Enforcement (broader page protection — a separate, later, unapproved stage); scoped enforcement in this build down to `/settings` only; explicitly preserved the existing phone approval workflow and HMAC convenience links untouched.
+**Approval, verbatim (design):** "Approve design"
+**Execution:** `jax1313-outlook/Dispatch` branch `stage7-security-foundation` (based on `stage5-portal-reconciliation`), commit `ba05fdf`. New `dispatch/security/` module (Identity, PIN with PBKDF2-HMAC-SHA256 at 600,000 iterations + lockout, Session, Role, Audit event log), `portal/auth_helpers.py`, `portal/routes/security.py` (`/login`, `/logout`). `/settings` gated with `@authority_required` — the only existing route modified to require a session. 29 new tests (`tests/test_security_foundation.py`); full suite re-run clean at 2,402 tests, 0 failures, 0 errors (2,373 baseline + 29 new). Two pre-existing tests updated to log in via the real `/login` route rather than bypassing the new gate. Live dev-server walkthrough confirmed: unauthenticated pages unchanged, `/settings` redirects unauthenticated and enforces the Authority role (403 for other roles), an existing unauthenticated action route proven untouched, and a full security-event audit trail. Branch pushed, no pull request opened.
+**Deviation flagged:** the design specified `portal/security/` as the module path; implementation placed it at `dispatch/security/` instead, to preserve the codebase's established one-directional `portal/` → `dispatch/` dependency (confirmed true of every other file) rather than requiring `dispatch/db.py` to import from `portal/`. Functionally identical to the design's intent; only the package path differs. Documented in full in `STAGE7_SECURITY_FOUNDATION_WALKTHROUGH_REPORT_v1.md`.
+**Scope not built:** retrofitting real identity onto the three existing HMAC email-decision gates (Jules #4, #5) and any Portal-wide page/action enforcement beyond `/settings` — deferred to a future, separate, unapproved Portal-Wide Enforcement stage per the Design Review's explicit instruction. The Security Sub-Library's PIN re-check is built and tested as a mechanism but not wired to a route, pending Stage 9's Library `origin` field.
+**Effect:** The platform now has a working Identity/PIN/Session/Role/Audit foundation and `create_approval_event()` can carry real identity when a session exists. Stage 7's original "hard blocker on any VPS/network deployment" (`DEPLOY_VPS.md`) is narrowed but not fully closed — full deployment-readiness still depends on a future Portal-Wide Enforcement stage retrofitting the HMAC gates and broader page protection.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*

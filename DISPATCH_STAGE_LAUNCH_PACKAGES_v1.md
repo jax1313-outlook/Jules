@@ -28,7 +28,7 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 4. Data Engine / Spine Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #7, #8 | Yes — `Dispatch` branch `stage4-spine-schemas` |
 | 5. Portal Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #10, #11 | Yes — `Dispatch` branch `stage5-portal-reconciliation` |
 | 6. Archive / IFTA Reconciliation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #13 (+ IFTA migration onto Stage 4 output) — deferred to a future Stage 6 *build* package | No — Claude-3 only, `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` |
-| 7. Security Foundation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #1, #2, #3, #4, #5, #21 — deferred to a future Stage 7 *build* package | No — Claude-3 only, `DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md` |
+| 7. Security Foundation | **Approved & executed (narrowed scope)** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #1, #2, #3, #21 (Identity/PIN/Session/Role/Audit) built; #4, #5 (retrofitting the three HMAC gates, broader page enforcement) deferred to a future Portal-Wide Enforcement stage | Yes — `Dispatch` branch `stage7-security-foundation` |
 | 8. Version Doctrine Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #12 — deferred to a future Stage 8 *build* package, possibly merged with a future Stage 6 build | No — Claude-3 only, `DISPATCH_STAGE8_VERSION_DOCTRINE_RECONCILIATION_v1.md` |
 | 9. Verification Workflow Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #6, #15 — deferred to a future Stage 9 *build* package | No — Claude-3 only, `DISPATCH_STAGE9_VERIFICATION_WORKFLOW_RECONCILIATION_v1.md` |
 | 10. Alert Governance Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #16, #17 — deferred to a future Stage 10 *build* package | No — Claude-3 only, `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` |
@@ -221,31 +221,27 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 7 — Security Foundation
 
-**Status: REDEFINED AS ANALYSIS-ONLY AND DELIVERED.** Mike's detailed charter explicitly scoped this stage to Architecture Reconciliation Mode — no code, no Dispatch repository changes, no PR, no migrations, no new tables, no Security Foundation build, no Stage 7 build launch package yet. Delivered as `DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md` (Claude-3 only). The original build scope below (Jules items #1–#5, #21) is deferred to a future Stage 7 *build* launch package, not authorized by this delivery.
+**Status: APPROVED & EXECUTED, NARROWED SCOPE.** Reconciliation (`DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md`) delivered first, analysis-only. Mike then approved a build ("Approve Stage 7 build"), reviewed the initial design, and explicitly narrowed it before approving implementation: no blanket Portal-wide PIN gate in this build — split into **Security Foundation** (Identity, PIN, Session, Role, Audit, Approval Events capability, Security Sub-Library mechanism, built here) versus **Portal-Wide Enforcement** (broader page protection, retrofitting the three HMAC gates with real identity — a separate, later, unapproved stage). Design revised accordingly and approved ("Approve design"). Built and delivered to the `Dispatch` repository as `dispatch/security/` (placed under `dispatch/`, not `portal/security/` as the design literally stated, to preserve the codebase's one-directional `portal/` → `dispatch/` dependency — flagged in the walkthrough report, not silently decided) plus `portal/auth_helpers.py` and `portal/routes/security.py`. Only `/settings` is gated with `@authority_required`; every other existing page and action route, and all three existing HMAC email-decision gates, are unchanged. See `STAGE7_SECURITY_FOUNDATION_WALKTHROUGH_REPORT_v1.md` in the `Dispatch` repository for full verification detail.
 
-**Depends on:** Stage 4 complete (Approval Event schema exists to retrofit identity onto). ✅ (for the deferred future build scope; not required for the analysis delivered)
+**Depends on:** Stage 4 complete (Approval Event schema exists to retrofit identity onto). ✅ — used: `create_approval_event()` can now carry real `session_id`/`user_id`/`role` when a session exists, proven directly by test, without any existing route being modified to require one.
 
-**Purpose:** Build Identity, PIN, Session, Role, and Permission records and a login flow; retrofit real authenticated identity onto the three existing HMAC email-decision gates; build the PIN-gated Security sub-library.
+**Purpose (as built):** Identity, PIN (PBKDF2-HMAC-SHA256, 600,000 iterations, with lockout), Session, Role (all four Security Spec roles), and Audit event log, plus a working login/logout flow gating the one page (`/settings`) that represents an actual authority/security risk. Retrofitting the three HMAC email-decision gates and building the PIN-gated Security sub-library route are explicitly **not** part of this build — deferred to a future Portal-Wide Enforcement stage.
 
-**Scope:** New `portal/security/` module; `approved_by`/`entered_by` fields on the IFTA, CIN-contract, and dispatch-load decision gates; `portal/models/library.py`'s new security section.
+**Scope (as built):** New `dispatch/security/` module (`models.py`, `db.py`, `store.py`, `auth.py`); `portal/auth_helpers.py`; `portal/routes/security.py`; `/settings` gated in `portal/routes/pages.py`; login/logout nav indicator in `portal/templates/base.html` (informational only, added via `portal/app.py`'s context processor).
 
-**Doctrine source:** `SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md` in full; `LIBRARY_INGESTION_RULE.md` §6.
+**Doctrine source:** `SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md` in full; `LIBRARY_INGESTION_RULE.md` §6 (Security Sub-Library re-check — mechanism built, not route-wired).
 
-**Jules Build Matrix items:** #1, #2, #3, #4, #5, #21.
+**Jules Build Matrix items:** #1, #2, #3, #21 built. #4, #5 (HMAC gate retrofit, broader enforcement) deferred to Portal-Wide Enforcement.
 
-**Findings:** Zero authentication, authorization, PIN, or role mechanism exists anywhere in the running app today (Reconciliation Matrix rows 13, 23, 29–31, confirmed by direct grep sweep). `PORTAL_SECRET_KEY` is already configured but currently unused, and can become the Flask session-signing key once sessions exist. The existing HMAC token mechanism is sound as a *secondary* confirmation layer and does not need to be discarded.
+**Findings:** Zero authentication, authorization, PIN, or role mechanism existed anywhere in the running app before this build (Reconciliation Matrix rows 13, 23, 29–31, confirmed by direct grep sweep). `PORTAL_SECRET_KEY` was already configured but unused — now used for its actual purpose (Flask session-cookie signing) for the first time. The existing HMAC token mechanism remains untouched and unreplaced, exactly as the reconciliation recommended.
 
-**Open Questions for Mike:**
-1. Beyond Mike as the Authority role, are there other real users who need an identity/role for the initial build — a dispatcher, a second reviewer — or does this stage only need to support a single Authority user for MVP?
-2. Should the existing single-reviewer (`DISPATCH_EMAIL_REVIEWER`) email-link pattern be retired once session login exists, or kept as a secondary/backup approval path for when Mike is away from a logged-in session?
+**Deliverables:** Working PIN login for any of the four roles (tested with Authority and Driver); role-based 403 enforcement on `/settings`; a full security-event audit trail (login success/failure, PIN lifecycle, session lifecycle, permission denials); the Security Sub-Library PIN re-check mechanism, tested and ready for a future route to call.
 
-**Deliverables:** Working PIN login for at least the Authority role; authenticated `approved_by`/`entered_by` on all three decision gates; PIN-gated Security sub-library with reset capability.
+**Test plan (executed):** `tests/test_security_foundation.py` — 29 tests covering PIN lifecycle (creation, validation, lockout after 5 failures, reset with approver tracking, revocation), all four roles, login success/failure (identity-enumeration-safe), session current/logout, structural guards against plaintext PIN storage, and the Approval Events identity-capability proof. Full regression: 2,402 tests, 0 failures (2,373 baseline + 29 new).
 
-**Test plan:** PIN authentication tests (creation, validation, failed-attempt lockout, reset, revocation), permission tests, approval audit tests, PIN re-check access tests for the Security sub-library.
+**Walkthrough report:** Delivered — `STAGE7_SECURITY_FOUNDATION_WALKTHROUGH_REPORT_v1.md` in the `Dispatch` repository. Live dev-server run covering: unauthenticated access to `/home`/`/library` (unchanged), unauthenticated `/settings` redirect, full login → `/settings` → logout cycle for an Authority user, 403 for a Driver-role user on `/settings`, an unauthenticated existing action route proven untouched, and the resulting audit trail.
 
-**Walkthrough report:** Required, and should be the most rigorous walkthrough of any stage — this closes the platform's single most critical gap.
-
-**Stop/Go:** Go when Mike can log in with a PIN and every approval action captures his real identity. **This stage is a hard blocker on any VPS/network deployment**, per `DEPLOY_VPS.md`'s own self-reported blocker.
+**Stop/Go:** **Go, for the narrowed scope.** Mike can log in with a PIN and `/settings` — the one page representing an actual authority risk in this build — enforces both session and role. Broader enforcement (the platform's full VPS/network deployment blocker per `DEPLOY_VPS.md`) remains open, pending a future Portal-Wide Enforcement stage.
 
 ---
 
