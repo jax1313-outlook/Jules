@@ -26,12 +26,12 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 2. Documentation Import | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage2-documentation-import` |
 | 3. Blueprint Alignment | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage3-blueprint-alignment` |
 | 4. Data Engine / Spine Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #7, #8 | Yes — `Dispatch` branch `stage4-spine-schemas` |
-| 5. Portal Reconciliation | Unblocked | #10, #11 | Yes |
+| 5. Portal Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #10, #11 | Yes — `Dispatch` branch `stage5-portal-reconciliation` |
 | 6. Archive / IFTA Reconciliation | Unblocked | #13 (+ IFTA migration onto Stage 4 output) | Yes |
 | 7. Security Foundation | Unblocked | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
-| 8. Version Doctrine Retrofit | Pending Stage 5 | #12 | Yes |
-| 9. Verification Workflow Retrofit | Pending Stages 7 + 8 | #6, #15 | Yes |
-| 10. Alert Governance Retrofit | Pending Stage 5 | #16, #17 | Yes |
+| 8. Version Doctrine Retrofit | Unblocked | #12 | Yes |
+| 9. Verification Workflow Retrofit | Pending Stage 7 | #6, #15 | Yes |
+| 10. Alert Governance Retrofit | Unblocked | #16, #17 | Yes |
 | 11. MVP Integration | Pending Stages 4–10 | #9, #14 (+ opportunistic #18/#19 per Open Question) | Yes |
 | 12. Testing and Hold Review | Pending Stage 11 | none new — aggregates all above | No new code, full regression |
 | 13. Production-Intent Promotion Decision | Pending Stage 12 | none | No |
@@ -163,7 +163,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 5 — Portal Reconciliation
 
-**Depends on:** Stage 4 complete (Spine schemas exist, even if not yet fully wired).
+**Status: APPROVED AND EXECUTED** — "Approve Stage 5", recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`. Executed to `jax1313-outlook/Dispatch` branch `stage5-portal-reconciliation` (commits `2393883`, `1ab18b6`, based on `stage4-spine-schemas`); branch pushed, no pull request opened. See `STAGE5_PORTAL_RECONCILIATION_WALKTHROUGH_REPORT_v1.md` in the Dispatch repo.
+
+**Depends on:** Stage 4 complete (Spine schemas exist, even if not yet fully wired). ✅
 
 **Purpose:** Add `card_level` and version display to the existing Portal cockpit surface.
 

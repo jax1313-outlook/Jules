@@ -60,4 +60,18 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 5: Portal Reconciliation — approved and executed
+
+**Stage:** Stage 5 — Portal Reconciliation (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Open Question resolved:** recommended default applied — `card_level` auto-derived from status/score, with an explicit Manager/Mike override (`set_card_level()`) that sticks against subsequent auto-recompute.
+**Approved by:** Mike (owner)
+**Approval, verbatim:** "Approve Stage 5"
+**Execution:** `jax1313-outlook/Dispatch` branch `stage5-portal-reconciliation` (based on `stage4-spine-schemas`), commits `2393883` (implementation) and `1ab18b6` (walkthrough report). `card_level` + `version`/`last_change` added to `portal/models/sandbox.py` and `portal/models/conflict.py`, rendered in `home.html`, `sam.html`, `dispatch.html`, `brief.html`, `conflicts.html`. 21 new tests; full suite re-run clean at 2,373 tests, 0 failures, 0 errors. Live dev-server walkthrough confirmed rendering on all five templates. Branch pushed, no pull request opened.
+**Scoping note flagged:** a dedicated Portal UI control for the Manager/Mike override exists only at the model layer in this stage — the control surface itself is deferred to Stage 10 (Alert Governance Retrofit) to avoid building the same governance UI twice.
+**Effect:** Stage 8 (Version Doctrine Retrofit — Library/Archive) and Stage 10 (Alert Governance Retrofit) are unblocked with respect to their Stage-5 dependency; Stage 6 and Stage 7 were already unblocked from Stage 4 and are unaffected by this stage.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
