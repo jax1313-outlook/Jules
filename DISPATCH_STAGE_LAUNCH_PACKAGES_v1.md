@@ -10,7 +10,7 @@
 
 ## Purpose
 
-This document formalizes each of the 13 Migration Plan stages (`DISPATCH_INTEGRATED_BLUEPRINT_v1.md` §16) into a launch package, following the same pre-implementation discipline the Dispatch repository's own `DECISION_LOG.md` already uses for every governed capability change: a launch package precedes implementation, states scope and open questions, and is followed by a walkthrough report once built.
+This document formalizes each of the 14 Migration Plan stages (`DISPATCH_INTEGRATED_BLUEPRINT_v1.md` §16's original 13, extended by one — Stage 12, Manager Reconciliation and Build, added per Mike's instruction "Add a dedicated Manager stage to the 13-stage plan," recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`) into a launch package, following the same pre-implementation discipline the Dispatch repository's own `DECISION_LOG.md` already uses for every governed capability change: a launch package precedes implementation, states scope and open questions, and is followed by a walkthrough report once built.
 
 **No package in this document authorizes any code change, deployment, or commit to the Dispatch repository.** Each stage's Stop/Go line states exactly what closes it. A stage does not begin until the prior stage's Stop/Go criteria are met and Mike has signed off — the same sequencing already established in the Migration Plan.
 
@@ -33,8 +33,9 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 9. Verification Workflow Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #6, #15 — deferred to a future Stage 9 *build* package | No — Claude-3 only, `DISPATCH_STAGE9_VERIFICATION_WORKFLOW_RECONCILIATION_v1.md` |
 | 10. Alert Governance Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #16, #17 — deferred to a future Stage 10 *build* package | No — Claude-3 only, `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` |
 | 11. MVP Integration | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #9, #14 — deferred; #9 identified as the critical Sandbox/Spine wiring gap | No — Claude-3 only, `DISPATCH_STAGE11_MVP_INTEGRATION_RECONCILIATION_v1.md` |
-| 12. Testing and Hold Review | Pending Stage 11 | none new — aggregates all above | No new code, full regression |
-| 13. Production-Intent Promotion Decision | Pending Stage 12 | none | No |
+| 12. Manager Reconciliation and Build | **Added to plan; reconciliation and design already delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | Not part of the original 22-item matrix — Manager has its own build matrix, see `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §21 | No — Claude-3 only, `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md`. A future Stage 12 *build* launch package (Phases M2–M7) is not authorized by this delivery. |
+| 13. Testing and Hold Review | Pending Stage 12 | none new — aggregates all above | No new code, full regression |
+| 14. Production-Intent Promotion Decision | Pending Stage 13 | none | No |
 
 Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeholder documentation) are not tied to a specific stage — they are standalone, Low/Future priority, and may proceed independently whenever convenient, per their own rows in the Jules Build Matrix.
 
@@ -361,11 +362,43 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ---
 
-## Stage 12 — Testing and Hold Review
+## Stage 12 — Manager Reconciliation and Build
 
-**Depends on:** Stage 11 complete.
+**Status: ADDED TO THE PLAN; RECONCILIATION AND DESIGN ALREADY DELIVERED.** Mike instructed "Add a dedicated Manager stage to the 13-stage plan," recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`, closing the gap Stage 11's reconciliation flagged three separate times: *"Manager has never had its own dedicated stage in the 13-stage plan."* The reconciliation and design work this stage calls for was already produced, under a direct Mike mission, before this stage formally existed in the plan — delivered as `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` (Claude-3 only). This stage entry retroactively assigns that existing deliverable to Stage 12, matching the same "redefined as analysis-only; delivered" pattern already used for Stages 6, 8, 9, 10, and 11. No code, no Dispatch repository changes, no PR, no migrations, no new tables were introduced by that delivery. A future Stage 12 *build* launch package is not authorized by this entry.
 
-**Purpose:** Run full regression across `cin_lite`, `dispatch`, and `portal`, plus every new test category introduced in Stages 4–11, together as one suite.
+**Depends on:** Stage 11 complete (MVP Integration — the reconciliation that surfaced this gap). ✅ Also draws on Stage 4 (Spine — Work Items, `ROUTED_TO_MANAGER` state), Stage 5 (Portal card model), and Stage 7 (Security Foundation — audit event stream), all already built. ✅
+
+**Purpose:** Reconcile `MANAGER.md`'s existing doctrine against the actual running Dispatch codebase — the same reconciliation discipline applied to every other organizational function — and produce the trigger, card, priority, and data model needed before Manager implementation planning can begin.
+
+**Scope (delivered):** Claude-3 documents only — no Dispatch file touched. **Scope (deferred, future build):** per `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §20–21 — a read-only signal aggregation layer over `dispatch/notifications.py`, `portal/models/conflict.py`, and `dispatch/spine/store.py::list_work_items()` (Phase M2); Portal card preparation via the Spine's existing `create_portal_card()` (Phase M3); Stage Gate, Archive/IFTA, and Security Alert monitors (Phases M4–M6); a policy-routing hook candidate, design-only unless separately authorized (Phase M7).
+
+**Doctrine source:** `MANAGER.md` in full; `DISPATCH_CONSTITUTION_v3.md` §6–7, §15, §17, §20; `DISPATCH_SPINE_SPECIFICATION_v1.md`; `SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md` §12.1; `LIBRARY_INGESTION_RULE.md`; `ALERT_GOVERNANCE_DOCTRINE.md`; `DISPATCH_VERSION_DOCTRINE.md`; `ARCHIVE_REVIEW_POLICY.md`; `PUBLISHER.md`; `INTELLIGENCE_ANALYST.md`.
+
+**Jules Build Matrix items:** None from the original 22-item matrix — Manager was never represented in it, which is itself part of what this stage's reconciliation surfaced. Manager has its own dedicated build matrix, `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §21, covering signal aggregation, Work Item classification, card preparation, the `ROUTED_TO_MANAGER` transition-target amendment, card-level unification, priority ranking, and security event pattern detection.
+
+**Findings:** Every individual signal Manager needs already exists in some form — `dispatch/notifications.py` trigger points, Conflict Notices, IFTA exceptions, the Stage 7 security event log — but nothing today reads across them, ranks by consequence, or decides what earns a Portal card versus a silent log entry. The Stage 4 Spine already reserves a `ROUTED_TO_MANAGER` Work Item state with zero outbound transitions and zero consumer code — the clearest hard evidence Manager was designed for from day one but never reconciled or built. A pre-existing, Manager-independent Conflict also surfaced: three separate implementations of the same 0–5 card-level scale across `sandbox.py`, `conflict.py`, and `dispatch/spine/models.py::PortalCard`, flagged for its own follow-up reconciliation rather than folded into Manager's build scope.
+
+**Open Questions for Mike (from `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §23):**
+1. ~~Whether to add a dedicated Manager stage to the 13-stage plan at all.~~ **Resolved by this instruction: yes.**
+2. Whether Phase M2 (Notification Store) and Phase M3 (Portal Card Preparation) should be scoped as one combined future build launch package or two sequential ones.
+3. Whether a policy engine ("GX," Phase M7) is wanted at all — no default assumption either way; this stage's delivery takes no position.
+4. Whether the card-level unification Conflict (three independent 0–5 implementations) should be reconciled as its own short, standalone pass before Manager's first build begins, as the design's Final Recommendation suggests.
+
+**Deliverables (this entry):** None new — `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` was already delivered and is retroactively assigned to this stage number. **Deliverables (future build, not authorized here):** a working read-only Staff Report generator (the design's recommended cleanest first prototype) — Manager reads existing trigger points and Work Items, classifies and ranks them, and produces a combined Status/Review card set for one scheduled review, with no new Work Item state writes and no security/archive scope yet.
+
+**Test plan:** N/A for this delivery (analysis and design only). A future build launch package would require the same discipline as every prior build stage — structural guard tests proving Manager never writes `work_items.current_state` outside `apply_transition()` and never calls any `dispatch.security.auth` write function, matching the pattern already proven in `tests/test_security_foundation.py`.
+
+**Walkthrough report:** N/A for this delivery — no code changed. Required for any future build phase, at the same rigor as Stages 4, 5, and 7.
+
+**Stop/Go:** This entry's own Stop/Go is satisfied — the stage now exists in the plan and its reconciliation is delivered. Any future Stage 12 *build* launch package requires its own separate Mike approval before implementation begins, per `DISPATCH_CONSTITUTION_v3.md` §20 (No Spec. No Prompt. No Build. No Approval. No Implementation.) — unchanged by this stage's addition.
+
+---
+
+## Stage 13 — Testing and Hold Review
+
+**Depends on:** Stage 12 complete.
+
+**Purpose:** Run full regression across `cin_lite`, `dispatch`, and `portal`, plus every new test category introduced in Stages 4–12, together as one suite.
 
 **Scope:** All.
 
@@ -373,10 +406,10 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 **Jules Build Matrix items:** None new — this stage aggregates every prior stage's test requirements.
 
-**Findings:** Existing CI already enforces 90% coverage on `cin_lite` + `dispatch`; this stage extends that bar to the new `portal/security/` and `dispatch/spine/` modules rather than replacing the existing standard.
+**Findings:** Existing CI already enforces 90% coverage on `cin_lite` + `dispatch`; this stage extends that bar to the new `dispatch/security/` and `dispatch/spine/` modules rather than replacing the existing standard. Any Manager code built under a future Stage 12 build launch package extends the same bar.
 
 **Open Questions for Mike:**
-1. Should the 90% coverage threshold apply immediately to the new `portal/security/` and `dispatch/spine/` modules, or is a lower initial bar (e.g. 80%, tightened later) acceptable for the first Hold Review pass?
+1. Should the 90% coverage threshold apply immediately to the new `dispatch/security/` and `dispatch/spine/` modules, or is a lower initial bar (e.g. 80%, tightened later) acceptable for the first Hold Review pass?
 
 **Deliverables:** A full CI-green suite at the existing coverage bar or higher, run across every stage's changes together — not stage-by-stage in isolation.
 
@@ -388,9 +421,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ---
 
-## Stage 13 — Production-Intent Promotion Decision
+## Stage 14 — Production-Intent Promotion Decision
 
-**Depends on:** Stage 12 complete and signed off.
+**Depends on:** Stage 13 complete and signed off.
 
 **Purpose:** Decide whether the integrated Dispatch repository is ready for VPS/network deployment.
 

@@ -169,4 +169,28 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Manager Build-Out Design — reconciliation and design delivered
+
+**Stage:** Not yet a numbered stage at the time of this delivery — Manager had no dedicated reconciliation stage in the 13-stage plan, per Stage 11's own flagged gap (§8, Open Question 3, and the Effect line of that entry above).
+**Mission:** Mike provided a full "DISPATCH MANAGER BUILD-OUT DESIGN TASK" charter directly — design, reconciliation, and behavior specification only; explicit hard constraints: no code, no Dispatch repository modification, no migrations, no tables, no PR, no implementation, no new agents, no GX design.
+**Deliverable:** `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` (Claude-3 repository only — no Dispatch repository activity for this mission).
+**Approved by:** Mike (owner), via the detailed charter provided directly.
+**Key findings:** `MANAGER.md`'s doctrine was already complete; the actual gap was the reconciliation against the running codebase, never previously performed. The Stage 4 Spine already reserves a `ROUTED_TO_MANAGER` Work Item state with zero outbound transitions and zero consumer code (`dispatch/spine/state.py`) — the clearest hard evidence Manager was designed for from day one but never built. Every individual signal Manager needs already exists somewhere (`dispatch/notifications.py` triggers, Conflict Notices, IFTA exceptions, the Stage 7 security event log) but nothing reads across them, ranks by consequence, or decides what earns a Portal card versus a silent log entry. Surfaced a pre-existing, Manager-independent Conflict: three separate implementations of the same 0–5 card-level scale across `sandbox.py`, `conflict.py`, and `dispatch/spine/models.py::PortalCard`.
+**Effect:** No stage was unblocked or blocked by this entry on its own — it is analysis, not a build gate. Directly answers Stage 11's open question by producing the reconciliation that question asked for, and provides the specific recommendation ("whether to add a dedicated Manager stage") acted on immediately below.
+
+---
+
+## 2026-08-10 — Stage 12: Manager Reconciliation and Build — added to the 13-stage plan
+
+**Stage:** New Stage 12 — Manager Reconciliation and Build (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`).
+**Approved by:** Mike (owner)
+**Approval, verbatim:** "Add a dedicated Manager stage to the 13-stage plan"
+**Effect on numbering:** The 13-stage plan becomes a 14-stage plan. New Stage 12 inserted directly after Stage 11 (MVP Integration, the stage that flagged the gap). Former Stage 12 (Testing and Hold Review) renumbered to Stage 13; former Stage 13 (Production-Intent Promotion Decision) renumbered to Stage 14. No prior stage's approved/executed history (Stages 1–11) changes meaning — only the two not-yet-started stages after the insertion point were renumbered.
+**Deliverable assignment:** `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` (delivered immediately prior to this instruction, see entry above) is retroactively assigned to this stage number, matching the "redefined as analysis-only; delivered" pattern already used for Stages 6, 8, 9, 10, and 11. No new document was produced by this instruction itself — it is a plan-structure change, recorded in `DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`'s cross-reference table and Stage 12 section.
+**Effect:** Stage 13 (Testing and Hold Review) now depends on Stage 12 complete rather than Stage 11 directly, since any future Manager build would need to be part of the combined regression suite that stage aggregates. A future Stage 12 *build* launch package (Phases M2–M7 per `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §20) remains available whenever Mike chooses to authorize it — not authorized by this entry.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
