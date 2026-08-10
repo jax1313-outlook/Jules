@@ -20,27 +20,29 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 
 ## Stage → Jules Build Matrix Cross-Reference
 
-| Stage | Jules Items Covered | Code Touched? |
-|---|---|---|
-| 1. Inventory Freeze | none | No |
-| 2. Documentation Import | none | No (docs only) |
-| 3. Blueprint Alignment | none | Yes — `CLAUDE.md` only |
-| 4. Data Engine / Spine Reconciliation | #7, #8 | Yes — new `dispatch/spine/` |
-| 5. Portal Reconciliation | #10, #11 | Yes |
-| 6. Archive / IFTA Reconciliation | #13 (+ IFTA migration onto Stage 4 output) | Yes |
-| 7. Security Foundation | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
-| 8. Version Doctrine Retrofit | #12 | Yes |
-| 9. Verification Workflow Retrofit | #6, #15 | Yes |
-| 10. Alert Governance Retrofit | #16, #17 | Yes |
-| 11. MVP Integration | #9, #14 (+ opportunistic #18/#19 per Open Question) | Yes |
-| 12. Testing and Hold Review | none new — aggregates all above | No new code, full regression |
-| 13. Production-Intent Promotion Decision | none | No |
+| Stage | Status | Jules Items Covered | Code Touched? |
+|---|---|---|---|
+| 1. Inventory Freeze | **Approved** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | No |
+| 2. Documentation Import | Unblocked — awaiting open-question answers | none | No (docs only) |
+| 3. Blueprint Alignment | Pending Stage 2 | none | Yes — `CLAUDE.md` only |
+| 4. Data Engine / Spine Reconciliation | Pending Stage 3 | #7, #8 | Yes — new `dispatch/spine/` |
+| 5. Portal Reconciliation | Pending Stage 4 | #10, #11 | Yes |
+| 6. Archive / IFTA Reconciliation | Pending Stage 4 | #13 (+ IFTA migration onto Stage 4 output) | Yes |
+| 7. Security Foundation | Pending Stage 4 | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
+| 8. Version Doctrine Retrofit | Pending Stage 5 | #12 | Yes |
+| 9. Verification Workflow Retrofit | Pending Stages 7 + 8 | #6, #15 | Yes |
+| 10. Alert Governance Retrofit | Pending Stage 5 | #16, #17 | Yes |
+| 11. MVP Integration | Pending Stages 4–10 | #9, #14 (+ opportunistic #18/#19 per Open Question) | Yes |
+| 12. Testing and Hold Review | Pending Stage 11 | none new — aggregates all above | No new code, full regression |
+| 13. Production-Intent Promotion Decision | Pending Stage 12 | none | No |
 
 Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeholder documentation) are not tied to a specific stage — they are standalone, Low/Future priority, and may proceed independently whenever convenient, per their own rows in the Jules Build Matrix.
 
 ---
 
 ## Stage 1 — Inventory Freeze
+
+**Status: APPROVED** — "Approve Stage 1", recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`.
 
 **Depends on:** Nothing (first stage).
 
