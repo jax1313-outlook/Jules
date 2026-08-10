@@ -3,57 +3,69 @@
 **Document Type:** Design/Spec for Review (Constitution §20 gate)
 **Program:** Dispatch
 **Owner:** Mike Zachary / Level 1 Transport
-**Status:** Awaiting Mike's design approval before implementation begins
+**Status:** Revised per Mike's design review — awaiting approval before implementation begins
 **Authority:** Mike Zachary remains final authority
 
 ---
 
 ## Purpose
 
-Constitution §20: *"No Spec. No Prompt. No Build. No Approval. No Implementation."* This is the design gate for Stage 7 build, following the same discipline used for Stage 4 (`DISPATCH_STAGE4_SPINE_SCHEMA_DESIGN_v1.md`) — but with more at stake: this build changes every Portal route from open to gated, and a wrong call on PIN storage is a security mistake, not a refactor to undo later. Nothing in this document is implemented yet.
+Constitution §20: *"No Spec. No Prompt. No Build. No Approval. No Implementation."* This is the design gate for Stage 7 build, following the same discipline used for Stage 4. Nothing in this document is implemented yet.
 
-This design answers Stage 7 reconciliation's four open questions with explicit recommendations, and surfaces two additional scope decisions the reconciliation didn't foresee, all flagged for your override before I write anything.
+**Revision note:** this version replaces the original blanket-route-protection design with the split Mike specified: **Security Foundation** (this build) versus **Portal-Wide Enforcement** (a separate, later, not-yet-approved stage). The scope below is narrower than the first draft, on purpose.
 
 ---
 
-## 1. Answers to Stage 7 Reconciliation's Open Questions
+## 1. The Two-Part Split
 
-| Question | Recommendation | Why |
+**Security Foundation — this build:**
+- Identity
+- PIN (creation, validation, change, reset, revocation, lockout)
+- Session
+- Role (schema for all four; only Authority functionally exercised)
+- Audit (`security_events`)
+- Approval Events (the *capability* to record real identity on an approval event when a session exists — not a mandate that any specific existing action route must now require login)
+- Security Sub-Library (the PIN-recheck *mechanism*, built and tested; not yet wired to an actual gated Library section, since that depends on Library's `origin` field, which isn't built — Stage 9 territory)
+
+**Portal-Wide Enforcement — explicitly NOT this build:**
+- Deciding which existing pages require login
+- Deciding which existing actions (Book, Pursue, Conflict resolution, Publisher approval, etc.) require login
+- Any change to informational browsing behavior
+
+This build produces working, tested login/PIN/session/role/audit infrastructure. It does not, by itself, change how any existing page or action behaves, with one named exception (Section 3).
+
+---
+
+## 2. Answers to Stage 7 Reconciliation's Open Questions
+
+| Question | Answer | Why |
 |---|---|---|
-| Single Authority user only, or Driver/External Viewer too on day one? | **Single Authority user (you) usable end-to-end. All four roles defined in the schema and permission model from the start** — so adding Driver/External Viewer login later needs no schema rework, just new routes. | Keeps the build tractable without narrowing the data model in a way that costs rework later. |
-| Consolidate the two HMAC token implementations (`cin_lite/email_delivery.py`, `dispatch/notifications.py`)? | **Leave them separate.** Not touched by this build. | Both work correctly today. Mixing "add identity" with "refactor working, tested code" in one change adds risk for no functional gain right now. |
-| Security Sub-Library PIN recheck — same build or follow-on? | **Follow-on, not bundled.** | It depends on Library's `origin` field (Jules #6, Stage 9's finding), which isn't built yet either. Keep this build focused on identity/session/role/PIN core. |
-| Fix `/settings`'s unauthenticated secret-exposure now? | **Yes — trivial once the login/session gate exists**, since it's just one more route behind the same gate. | Real, live information-disclosure gap; near-zero marginal cost once the gate exists. |
-
-**If any of these should go the other way, say so before I start.**
+| Single Authority user only, or Driver/External Viewer too on day one? | **Single Authority user (you) usable end-to-end. All four roles defined in the schema from the start.** | Unchanged from the prior draft — no rework needed here. |
+| Consolidate the two HMAC token implementations? | **Leave them separate. Not touched by this build.** | Unchanged. |
+| Security Sub-Library PIN recheck — same build or follow-on? | **The re-check mechanism is built now (Section 1); wiring it to an actual Library section is a follow-on**, pending Stage 9's `origin` field. | Matches Mike's explicit inclusion of Security Sub-Library in this build's scope, without overreaching into Library work that isn't ready. |
+| Fix `/settings`'s unauthenticated secret-exposure now? | **Yes.** | The one page-level "actual security risk" carve-out Mike specified — viewing that page *is* the risk, independent of any action. |
 
 ---
 
-## 2. Two Scope Decisions the Reconciliation Didn't Foresee
+## 3. What Actually Changes in the Running Application
 
-### 2.1 Blanket route protection vs. a pilot subset
+**Gated by this build:** `/settings` only, plus the new `/login`/`/logout` routes themselves. This is the one page where Mike's own carve-out applies directly — `/settings` exposes which secrets/keys are configured to any visitor today, which is a real information-disclosure risk regardless of whether anyone acts on what they see.
 
-Every Portal route is open today — confirmed by grep, no exceptions. Stage 7 reconciliation's own capability table flagged "unauthenticated approval" as a live Conflict against doctrine, not a hypothetical one. **Recommendation: protect the whole Portal behind login in this build** (a `@login_required`-style check applied portal-wide), not a partial subset — a partial gate would leave the same doctrine violation standing for whatever's left uncovered, just narrower.
+**Unchanged by this build:** every other existing page (`/home`, `/sam`, `/dispatch`, `/conflicts`, `/library`, `/archive`, `/intelligence`, `/publisher`, `/ifta`, `/fleet`, all of it) continues to work exactly as it does today, unauthenticated, per Mike's instruction to keep informational browsing behavior unchanged. Every existing action button (Interested/Pursue/Pass/Watch/Book, Conflict resolve, Publisher status update, IFTA submission) continues to work exactly as today — **none of them are modified to require login in this build.** The three HMAC email-approval gates are untouched, preserving the phone-approval workflow exactly as it works now, per Mike's explicit instruction.
 
-**Practical consequence you should know before approving:** once this ships, you will need to log in with a PIN to see *any* Portal page, including `/home`. If that's not what you want for a first pass (e.g., you'd rather keep browsing open and only gate the actual approval actions), say so now — it changes the build meaningfully.
-
-### 2.2 The three HMAC email-approval gates stay untouched in this build
-
-Stage 7 reconciliation recommended session auth as a *secondary layer* on top of the token gates eventually. Implementing that now creates a real UX conflict: those gates exist specifically so you can approve something by clicking a link from your phone, possibly without an active Portal session on that device. Requiring both a valid session *and* the token in this build could break that flow without your explicit sign-off on the trade-off.
-
-**Recommendation: leave all three email-approval gates (CIN/SAM, dispatch-load, IFTA) exactly as they behave today in this build.** Real identity gets wired into the approval actions you take *through the logged-in Portal UI* (status changes, conflict resolution, publisher actions, IFTA submissions started from the UI) — not into the emailed-link endpoints. Whether the emailed links should later also require an active session is a separate decision with a real convenience cost, worth its own explicit call once you've used session login for a while.
+**What this means for Approval Events concretely:** the capability to record a real `session_id`/`user_id`/`role` on an `approval_events` row is built and tested in this stage. Because no existing action route is being modified to require login, those rows will continue to be written with a null actor exactly as they are today, until a *separate*, future, explicitly-approved step (Portal-Wide Enforcement, or a narrowly-scoped follow-on) decides a specific action should require login. This build proves the capability works; it does not exercise it against real traffic yet. That is a deliberate, not an incomplete, design.
 
 ---
 
-## 3. Schema Design
+## 4. Schema Design
 
-New module `portal/security/` (mirroring `dispatch/spine/`'s structure), persisted in the **same `dispatch.db` file**, added to the existing `_init_db()` pass — consistent with Stage 4's precedent and not re-litigated here since nothing in the Stage 7 reconciliation suggested a different file.
+Unchanged from the prior draft — nothing about the schema itself needed revision, only how broadly it gets applied. New module `portal/security/`, same `dispatch.db` file, added to the existing `_init_db()` pass.
 
-### 3.1 `users`
+### 4.1 `users`
 
 | Column | Type | Notes |
 |---|---|---|
-| `user_id` | TEXT PRIMARY KEY | `_gen_id("USER")`, matching this codebase's universal ID convention |
+| `user_id` | TEXT PRIMARY KEY | `_gen_id("USER")` |
 | `display_name` | TEXT NOT NULL | |
 | `role` | TEXT NOT NULL | `Authority` \| `Driver` \| `External Viewer` \| `System Service` |
 | `status` | TEXT NOT NULL DEFAULT `'active'` | `active` \| `inactive` \| `locked` |
@@ -61,15 +73,15 @@ New module `portal/security/` (mirroring `dispatch/spine/`'s structure), persist
 | `created_at` / `updated_at` | TEXT NOT NULL | |
 | `last_login_at` | TEXT | nullable |
 
-Permissions are **not** a stored per-user column — they're a static role→permission lookup in code (mirroring how `dispatch/spine/state.py::ALLOWED_TRANSITIONS` is a Python dict, not a table), since this build assigns permissions by role, not individually. `authority_level` (a Security Spec field with no defined semantics beyond role in this build) is deferred, not included.
+Permissions are a static role→permission lookup in code, not a stored column (mirrors `dispatch/spine/state.py::ALLOWED_TRANSITIONS`). `authority_level` deferred, not included.
 
-### 3.2 `pin_records`
+### 4.2 `pin_records`
 
 | Column | Type | Notes |
 |---|---|---|
 | `pin_record_id` | TEXT PRIMARY KEY | |
 | `user_id` | TEXT NOT NULL REFERENCES `users` | |
-| `pin_hash` | TEXT NOT NULL | see Section 4 — never plaintext |
+| `pin_hash` | TEXT NOT NULL | see Section 5 — never plaintext |
 | `salt` | TEXT NOT NULL | random, unique per PIN |
 | `status` | TEXT NOT NULL DEFAULT `'active'` | `active` \| `revoked` |
 | `reset_required` | INTEGER NOT NULL DEFAULT 0 | |
@@ -77,76 +89,71 @@ Permissions are **not** a stored per-user column — they're a static role→per
 | `locked_until` | TEXT | nullable — set on lockout |
 | `created_at` / `updated_at` | TEXT NOT NULL | |
 
-### 3.3 `sessions`
+### 4.3 `sessions`
 
 | Column | Type | Notes |
 |---|---|---|
 | `session_id` | TEXT PRIMARY KEY | |
 | `user_id` | TEXT NOT NULL REFERENCES `users` | |
-| `role` | TEXT NOT NULL | snapshot at login — a later role change doesn't retroactively alter an already-issued session's permissions mid-session |
+| `role` | TEXT NOT NULL | snapshot at login |
 | `started_at` / `last_active_at` | TEXT NOT NULL | |
 | `status` | TEXT NOT NULL DEFAULT `'active'` | `active` \| `expired` \| `revoked` |
 | `authentication_method` | TEXT NOT NULL DEFAULT `'DISPATCH_PIN'` | |
 
-### 3.4 `security_events`
+### 4.4 `security_events`
 
 | Column | Type | Notes |
 |---|---|---|
 | `event_id` | TEXT PRIMARY KEY | |
-| `event_type` | TEXT NOT NULL | `LOGIN_SUCCESS`, `LOGIN_FAILURE`, `PIN_CREATED`, `PIN_CHANGED`, `PIN_RESET`, `PIN_REVOKED`, `SESSION_CREATED`, `SESSION_EXPIRED`, `PERMISSION_DENIED` (Security Spec §16 list, trimmed to what this build actually produces) |
-| `user_id` | TEXT | nullable — a `LOGIN_FAILURE` on an unrecognized identity has no user to attach to |
+| `event_type` | TEXT NOT NULL | `LOGIN_SUCCESS`, `LOGIN_FAILURE`, `PIN_CREATED`, `PIN_CHANGED`, `PIN_RESET`, `PIN_REVOKED`, `SESSION_CREATED`, `SESSION_EXPIRED`, `PERMISSION_DENIED` |
+| `user_id` | TEXT | nullable |
 | `timestamp` | TEXT NOT NULL | |
-| `details` | TEXT | JSON, e.g. failed-attempt count at time of lockout |
+| `details` | TEXT | JSON |
+
+### 4.5 Security Sub-Library re-check (mechanism only)
+
+A function, not a table: `require_security_sublibrary_pin(session)` — re-validates a PIN at the moment of access, distinct from the general login PIN check, per `LIBRARY_INGESTION_RULE.md` §6. It reuses `pin_records`/the same validation function as login (Section 5), called a second time at a different trigger point — no second PIN system. Built and unit-tested in this stage; **not called from any route yet**, since there is no "security" Library section to protect until Stage 9's `origin` field work lands. This satisfies Mike's inclusion of Security Sub-Library in this build's scope without inventing a Library feature that isn't ready.
 
 ---
 
-## 4. PIN Storage — the One Decision That Can't Be Casual
+## 5. PIN Storage
 
-A PIN is short (likely 4–6 digits), meaning a raw salted hash — even SHA-256, which this codebase already uses correctly for *file-integrity* hashing in `cin_lite/archive.py` — would be brute-forceable offline in seconds if the database were ever exposed, because SHA-256 is intentionally fast. File-integrity hashing and credential hashing are different problems and must not share a technique.
+Unchanged — confirmed accepted: the distinction between file-integrity hashing (`cin_lite/archive.py`'s existing SHA-256 use) and credential hashing is a settled point, not open for reconsideration.
 
-**Recommendation: `hashlib.pbkdf2_hmac('sha256', pin.encode(), salt, iterations=600_000)`** — stdlib only (no new dependency, consistent with `CLAUDE.md`'s "must remain lightweight" constraint), well-audited, and the iteration count is in line with current OWASP guidance for PBKDF2-SHA256. Validation re-hashes the entered PIN with the stored salt and compares with `hmac.compare_digest` (this codebase's own existing, correct pattern from the HMAC token gates).
+**Proceeding with `hashlib.pbkdf2_hmac('sha256', pin.encode(), salt, iterations=600_000)`** — stdlib only, no new dependency, in line with current OWASP guidance for PBKDF2-SHA256. Validation re-hashes the entered PIN with the stored salt and compares with `hmac.compare_digest`. If you'd rather have `hashlib.scrypt` (memory-hard, also stdlib, a defensible stronger alternative) instead, say so — otherwise I'll build with PBKDF2.
 
-**A defensible alternative:** `hashlib.scrypt` (also stdlib), which is memory-hard and somewhat more resistant to GPU-accelerated brute force on a low-entropy secret like a PIN. PBKDF2 is the more conservative, more widely-documented default; scrypt is the stronger but less common choice for this specific use case. I'd default to PBKDF2 unless you'd rather have scrypt — either is a legitimate call, and it's cheap to specify now and expensive to silently get wrong.
-
-No plaintext PIN is stored, logged, or ever appears in a repository file, matching Security Spec §17's explicit prohibition.
+No plaintext PIN is stored, logged, or ever appears in a repository file.
 
 ---
 
-## 5. Login Flow
+## 6. Login Flow
 
-1. User selects their identity (initially: just you) and enters a PIN.
-2. Dispatch validates the PIN (Section 4) against the stored hash for that identity.
-3. On success: create a `sessions` row, set a Flask session cookie signed with `PORTAL_SECRET_KEY` (finally used, for the first time, for its actual purpose), record `LOGIN_SUCCESS`, update `last_login_at`.
-4. On failure: increment `failed_attempt_count`; after 5 consecutive failures, set `locked_until` (recommend 15 minutes) and record `LOGIN_FAILURE`; do not reveal whether the identity itself was valid (standard practice — don't let a failed attempt confirm a username exists).
-5. Session enforcement: a check applied to protected routes loads the session from the cookie, verifies it's `active` and not expired, and attaches the current user/role to the request context. Per Section 2.1, this applies to every existing route unless you say otherwise.
+1. User selects identity (initially: just you) and enters a PIN.
+2. Dispatch validates the PIN against the stored hash.
+3. On success: create a `sessions` row, set a Flask session cookie signed with `PORTAL_SECRET_KEY` (used for its actual purpose for the first time), record `LOGIN_SUCCESS`, update `last_login_at`.
+4. On failure: increment `failed_attempt_count`; after 5 consecutive failures, set `locked_until` (15 minutes) and record `LOGIN_FAILURE`; do not reveal whether the identity itself was valid.
+5. Session enforcement: a reusable check (decorator/function) that loads the session from the cookie and attaches the current user/role to the request context — **built and available, but in this build only applied to `/settings` and the new `/login`/`/logout` routes themselves**, per Section 3. Applying it more broadly is Portal-Wide Enforcement's decision, not this build's.
 
 ---
-
-## 6. What Gets Real Identity in This Build
-
-- `approval_events.session_id`/`user_id`/`role` — populated from the real logged-in session for every approval action taken through the Portal UI (Sandbox status changes, Conflict resolution, Publisher action updates, IFTA report-approval submission started from `/ifta`). This finally closes the gap Stage 4's own test (`test_approval_event_interim_identity_gap_is_nullable`) was written to make visible rather than hide.
-- `/settings` — gated behind Authority-only access (Section 1).
-- Every other existing route — gated behind *any* valid session (Section 2.1), without new per-route permission logic beyond "logged in or not" in this first build. Fine-grained per-role route restrictions (Driver-only views, External-Viewer-only views) are out of scope until those roles actually have a build — this build's Role model exists in the schema but only Authority is functionally exercised end to end.
 
 ## 7. What Does Not Change in This Build
 
-The three HMAC email-approval gates (Section 2.2). `cin_lite/archive.py`'s hashing (unrelated — file integrity, not credentials). `dispatch/spine/` (Stage 4 — this build populates its existing nullable fields, doesn't touch its schema). Any existing business logic, scoring, or IFTA computation.
+Every existing page's unauthenticated browsing behavior. Every existing action route's current (unauthenticated) behavior. The three HMAC email-approval gates and the phone-approval workflow they support. `cin_lite/archive.py`'s hashing. `dispatch/spine/`'s schema (this build only proves it *can* be populated with real identity, doesn't force it to be, on any current route). Any existing business logic, scoring, or IFTA computation.
 
 ---
 
 ## 8. Test Plan
 
-Per Security Spec §17 build-readiness requirements: PIN creation/validation/lockout tests; session creation/expiry/revocation tests; permission-denied tests for the one meaningfully differentiated case this build has (Authority vs. everyone-else, since other roles aren't functionally built yet); a structural test confirming no plaintext PIN ever reaches a log line, response body, or stored column; regression tests confirming every existing route still functions correctly *for an authenticated session* (since blanket protection means every existing test that hits a route needs a logged-in test client — this is the largest mechanical part of this build, not the riskiest).
+PIN creation/validation/lockout tests. Session creation/expiry/revocation tests. `/settings` access-denied-when-logged-out / access-granted-when-Authority tests. A structural test confirming no plaintext PIN ever reaches a log line, response body, or stored column. A test proving `create_approval_event()` correctly populates `session_id`/`user_id`/`role` **when called with a real session** (proving the capability, per Section 3) alongside the existing Stage 4 test proving it stays correctly null without one. Security Sub-Library PIN-recheck unit tests (function-level, no route to test against yet). **A full regression pass confirming every existing route and every existing test continues to pass completely unauthenticated, unchanged** — this is the "nothing broke" guarantee this build's narrower scope makes easy to satisfy, unlike the blanket-protection draft which would have required updating every existing route test to log in first.
 
 ---
 
 ## 9. Open Questions Before I Start
 
-1. Blanket route protection (Section 2.1) — confirmed, or do you want a narrower first pass?
-2. PBKDF2-HMAC-SHA256 (Section 4) — confirmed, or scrypt?
-3. Anything else from Section 1's table you want changed?
+1. PBKDF2-HMAC-SHA256 (Section 5) — proceeding with this unless you say scrypt.
+2. Anything in Section 1's split, or Section 3's "what changes," that should be different?
 
-If you're fine with the recommendations as written, say **"Approve design"** (or similar) and I'll build it. If you want to change any of the above first, tell me which and I'll revise this document before touching any code.
+If this matches what you intended, say **"Approve design"** and I'll build it. If not, tell me what to change and I'll revise again before touching any code.
 
 ---
 
