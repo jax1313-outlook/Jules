@@ -113,4 +113,17 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 9: Verification Workflow Reconciliation — redefined as analysis-only and delivered
+
+**Stage:** Stage 9 — Verification Workflow Retrofit (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Scope change:** Mike instructed "Proceed to Stage 9, remain in Architecture Reconciliation Mode" — same discipline as Stages 6–8: no code, no Dispatch repository modification, no PR, no migrations, no new tables, no build package.
+**Deliverable:** `DISPATCH_STAGE9_VERIFICATION_WORKFLOW_RECONCILIATION_v1.md` (Claude-3 repository only — no Dispatch repository activity for this stage).
+**Approved by:** Mike (owner).
+**Key findings:** two strong existing seeds — the nine deterministic rule modules (Verified-by-construction for extraction claims specifically, not downstream business conclusions) and IFTA's `extraction_confidence`/suspect-entries threshold (a working Partially Verified seed, but deliberately non-blocking by design — real classification needs enforcement teeth suspect-entries intentionally lacks). `portal/models/intelligence.py` has zero classification/confidence/source-grounding fields. IFTA's `leg_ids`/`purchase_ids` provenance tracking converges with Stage 4's already-defined `source_refs` field shape rather than needing a new format. Confirms the Library `origin`-field gap (Jules #6) as the most concrete finding. No new agent recommended anywhere, per the doctrine's own explicit constraint.
+**Effect:** No stage is unblocked or blocked by this entry — it is analysis, not a build gate. A future Stage 9 build launch package remains available whenever Mike chooses to authorize it, informed by this reconciliation's three open questions (§12 of the deliverable), sequenced after a future Stage 7 build for real approval enforcement.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
