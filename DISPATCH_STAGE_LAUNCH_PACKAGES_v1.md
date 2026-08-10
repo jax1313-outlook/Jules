@@ -144,8 +144,10 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 **Findings (from Reconciliation Matrix rows 10–14, 32):** the SQLite + WAL + idempotent-migration pattern already proven in `dispatch/db.py` is sound and reusable for the new Spine tables. No generic Work Item/Event/Approval Event/Conflict Event/Audit Event table exists today. Multiple independent per-entity enum state machines exist (`Load`, `Settlement`, `IFTAReportApproval`, etc.) but no shared transition-table concept governs them yet.
 
 **Open Questions for Mike:**
-1. Do the new Spine tables live in the same `dispatch.db` SQLite file (new tables, same connection, same transactional guarantees) or a separate database file? Recommendation: same file, for transactional consistency with existing tables — but this is a real architectural choice, not a default to assume.
-2. Should the Spine's generic Event table subsume `LoadActivity`'s existing free-text per-load log, or should the two coexist during the transition period?
+1. ~~Do the new Spine tables live in the same `dispatch.db` SQLite file or a separate database file?~~ **Resolved: same file.**
+2. ~~Should the Spine's generic Event table subsume `LoadActivity`'s existing free-text per-load log, or coexist?~~ **Resolved: coexist during the transition.** `events` is scoped to Work Items; `activities` (`LoadActivity`) remains untouched and continues serving Loads as it does today. No migration, no dual-write. Whether/how they eventually consolidate is a later decision (candidate: Stage 11, when Sandbox generalizes into the Work Item shape), not part of Stage 4.
+
+**Design review (Constitution §20 — required before implementation begins):** see `DISPATCH_STAGE4_SPINE_SCHEMA_DESIGN_v1.md`.
 
 **Deliverables:** `work_items`, `events`, `portal_cards`, `approval_events`, `conflict_events`, `audit_events` tables and schemas; the approved state list and a transition-guard function per Spine Spec §6–7.
 
