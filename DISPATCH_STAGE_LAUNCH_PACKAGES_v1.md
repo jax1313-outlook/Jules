@@ -28,7 +28,7 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 4. Data Engine / Spine Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #7, #8 | Yes — `Dispatch` branch `stage4-spine-schemas` |
 | 5. Portal Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #10, #11 | Yes — `Dispatch` branch `stage5-portal-reconciliation` |
 | 6. Archive / IFTA Reconciliation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #13 (+ IFTA migration onto Stage 4 output) — deferred to a future Stage 6 *build* package | No — Claude-3 only, `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` |
-| 7. Security Foundation | Unblocked | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
+| 7. Security Foundation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #1, #2, #3, #4, #5, #21 — deferred to a future Stage 7 *build* package | No — Claude-3 only, `DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md` |
 | 8. Version Doctrine Retrofit | Unblocked | #12 | Yes |
 | 9. Verification Workflow Retrofit | Pending Stage 7 | #6, #15 | Yes |
 | 10. Alert Governance Retrofit | Unblocked | #16, #17 | Yes |
@@ -221,7 +221,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 7 — Security Foundation
 
-**Depends on:** Stage 4 complete (Approval Event schema exists to retrofit identity onto).
+**Status: REDEFINED AS ANALYSIS-ONLY AND DELIVERED.** Mike's detailed charter explicitly scoped this stage to Architecture Reconciliation Mode — no code, no Dispatch repository changes, no PR, no migrations, no new tables, no Security Foundation build, no Stage 7 build launch package yet. Delivered as `DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md` (Claude-3 only). The original build scope below (Jules items #1–#5, #21) is deferred to a future Stage 7 *build* launch package, not authorized by this delivery.
+
+**Depends on:** Stage 4 complete (Approval Event schema exists to retrofit identity onto). ✅ (for the deferred future build scope; not required for the analysis delivered)
 
 **Purpose:** Build Identity, PIN, Session, Role, and Permission records and a login flow; retrofit real authenticated identity onto the three existing HMAC email-decision gates; build the PIN-gated Security sub-library.
 
