@@ -74,4 +74,17 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 6: Archive / IFTA Reconciliation — redefined as analysis-only and delivered
+
+**Stage:** Stage 6 — Archive / IFTA Reconciliation (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Scope change:** Mike redefined Stage 6, in his own words, as "an architecture reconciliation stage only" — explicitly prohibiting production code, Dispatch repository modification, pull requests, migrations, and new database tables. This narrows Stage 6's original launch-package scope (which included migrating `IFTAReportApproval` onto the generic Approval Event schema and building the Archive Review Queue) to discovery/mapping only; that implementation work is deferred to a future Stage 6 *build* launch package, not authorized here.
+**Deliverable:** `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` (Claude-3 repository only — no Dispatch repository activity for this stage).
+**Approved by:** Mike (owner), via the detailed Stage 6 charter provided directly.
+**Key findings:** three separate archive-shaped assets exist (`cin_lite/archive.py`, `portal/models/archive.py`, IFTA's compliance archive); the integrity half of Archive doctrine is already strongly satisfied by two of the three; the retention/review half (Current+3, Review Queue, Keep/Delete) is missing uniformly across all three — one shared gap, not three. IFTA recommended as a Combination role: primarily Compliance Module, secondarily the Spine's proven Approval Event/Alert Governance reference pattern — confirming rather than revising the direction already set in `DISPATCH_INTEGRATED_BLUEPRINT_v1.md` §9.
+**Effect:** No stage is unblocked or blocked by this entry — it is analysis, not a build gate. A future Stage 6 build launch package (covering the shared version-retention/Review-Queue pattern and the IFTA-to-Approval-Event migration) remains available whenever Mike chooses to authorize it, informed by this reconciliation's three open questions (§9 of the deliverable).
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*

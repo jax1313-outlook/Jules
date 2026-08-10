@@ -27,7 +27,7 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 3. Blueprint Alignment | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage3-blueprint-alignment` |
 | 4. Data Engine / Spine Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #7, #8 | Yes — `Dispatch` branch `stage4-spine-schemas` |
 | 5. Portal Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #10, #11 | Yes — `Dispatch` branch `stage5-portal-reconciliation` |
-| 6. Archive / IFTA Reconciliation | Unblocked | #13 (+ IFTA migration onto Stage 4 output) | Yes |
+| 6. Archive / IFTA Reconciliation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #13 (+ IFTA migration onto Stage 4 output) — deferred to a future Stage 6 *build* package | No — Claude-3 only, `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` |
 | 7. Security Foundation | Unblocked | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
 | 8. Version Doctrine Retrofit | Unblocked | #12 | Yes |
 | 9. Verification Workflow Retrofit | Pending Stage 7 | #6, #15 | Yes |
@@ -192,7 +192,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 6 — Archive / IFTA Reconciliation
 
-**Depends on:** Stage 4 complete (generic Approval Event schema exists).
+**Status: REDEFINED AS ANALYSIS-ONLY AND DELIVERED.** Mike's detailed charter explicitly scoped this stage to architecture reconciliation only — no code, no Dispatch repository changes, no PR, no migrations, no new tables. Delivered as `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` (Claude-3 only). The original build scope below (IFTA migration onto the generic Approval Event schema, Archive Review Queue) is deferred to a future Stage 6 *build* launch package, not authorized by this delivery.
+
+**Depends on:** Stage 4 complete (generic Approval Event schema exists). ✅ (for the deferred future build scope; not required for the analysis delivered)
 
 **Purpose:** Migrate `IFTAReportApproval` onto the generic Approval Event schema as the pilot migration; build the Archive Review Queue.
 
