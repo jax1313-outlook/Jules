@@ -31,7 +31,7 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 7. Security Foundation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #1, #2, #3, #4, #5, #21 — deferred to a future Stage 7 *build* package | No — Claude-3 only, `DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md` |
 | 8. Version Doctrine Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #12 — deferred to a future Stage 8 *build* package, possibly merged with a future Stage 6 build | No — Claude-3 only, `DISPATCH_STAGE8_VERSION_DOCTRINE_RECONCILIATION_v1.md` |
 | 9. Verification Workflow Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #6, #15 — deferred to a future Stage 9 *build* package | No — Claude-3 only, `DISPATCH_STAGE9_VERIFICATION_WORKFLOW_RECONCILIATION_v1.md` |
-| 10. Alert Governance Retrofit | Unblocked | #16, #17 | Yes |
+| 10. Alert Governance Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #16, #17 — deferred to a future Stage 10 *build* package | No — Claude-3 only, `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` |
 | 11. MVP Integration | Pending Stages 4–10 | #9, #14 (+ opportunistic #18/#19 per Open Question) | Yes |
 | 12. Testing and Hold Review | Pending Stage 11 | none new — aggregates all above | No new code, full regression |
 | 13. Production-Intent Promotion Decision | Pending Stage 12 | none | No |
@@ -309,7 +309,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 10 — Alert Governance Retrofit
 
-**Depends on:** Stage 5 complete (card model exists to attach controls to).
+**Status: REDEFINED AS ANALYSIS-ONLY AND DELIVERED.** Mike instructed Architecture Reconciliation Mode — no code, no Dispatch repository changes, no PR, no migrations, no new tables, no build package. Delivered as `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` (Claude-3 only). The original build scope below (Jules items #16, #17) is deferred to a future Stage 10 *build* launch package, not authorized by this delivery.
+
+**Depends on:** Stage 5 complete (card model exists to attach controls to). ✅ (for the deferred future build scope; not required for the analysis delivered)
 
 **Purpose:** Build the shared Mike-facing alert-governance control surface; give real blocking behavior to authority-level conflicts that today are only advisory.
 

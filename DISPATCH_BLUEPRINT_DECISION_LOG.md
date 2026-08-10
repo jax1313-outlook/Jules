@@ -126,4 +126,17 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 10: Alert Governance Reconciliation — redefined as analysis-only and delivered
+
+**Stage:** Stage 10 — Alert Governance Retrofit (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Scope change:** Mike instructed "Proceed to Stage 10, remain in Architecture Reconciliation Mode" — same discipline as Stages 6–9: no code, no Dispatch repository modification, no PR, no migrations, no new tables, no build package.
+**Deliverable:** `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` (Claude-3 repository only — no Dispatch repository activity for this stage).
+**Approved by:** Mike (owner).
+**Key findings:** five independently-built alert-shaped systems exist, not four — Conflict Notices, a separate load-scoped `ExceptionNotice` system not named in the original Stage 10 scope, `IFTAException`, plus IFTA's `plausibility_warning` and suspect-entries, the latter two of which are not persisted records at all (no `alert_id` to govern). Two of five alert types must become addressable records before any future governance action can target them — a structural prerequisite, not just a missing feature. All five are already correctly advisory-only by accident of independent design. Stage 4's `conflict_events` Spine schema is a ready, unused unification target for the three record-backed systems.
+**Effect:** No stage is unblocked or blocked by this entry — it is analysis, not a build gate. A future Stage 10 build launch package remains available whenever Mike chooses to authorize it, informed by this reconciliation's three open questions (§13 of the deliverable).
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
