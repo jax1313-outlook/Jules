@@ -100,4 +100,17 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 8: Version Doctrine Reconciliation — redefined as analysis-only and delivered
+
+**Stage:** Stage 8 — Version Doctrine Retrofit (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Scope change:** Mike instructed "Proceed to Stage 8, remain in Architecture Reconciliation Mode" — same discipline as Stages 6–7: no code, no Dispatch repository modification, no PR, no migrations, no new tables, no build package.
+**Deliverable:** `DISPATCH_STAGE8_VERSION_DOCTRINE_RECONCILIATION_v1.md` (Claude-3 repository only — no Dispatch repository activity for this stage).
+**Approved by:** Mike (owner).
+**Key findings:** Stage 5's Sandbox implementation is a proven, working precedent — its lightweight pattern (version int + last_change label, no full snapshot retention) transfers cleanly, and even more simply, to Library (human re-uploads are already deliberate changes, no diffing logic needed). It does NOT transfer standalone to two of the three Archives — both overwrite in place, so version display and Stage 6's already-deferred retention build are the same deliverable, not sequential ones. Most IFTA records are append-only by design and have nothing to version; `IFTAReportApproval`'s existing `draft`/`sealed` status may already satisfy Version Doctrine's intent without a redundant numeric field. Also surfaced a real gap: Stage 5 gave Conflict Notices `card_level` but never added `version`/`last_change`.
+**Effect:** No stage is unblocked or blocked by this entry — it is analysis, not a build gate. A future Stage 8 build launch package remains available whenever Mike chooses to authorize it, informed by this reconciliation's four open questions (§9 of the deliverable), and may reasonably merge with a future Stage 6 Archive build package per Section 8's cross-stage finding.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*

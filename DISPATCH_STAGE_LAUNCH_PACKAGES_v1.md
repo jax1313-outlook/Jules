@@ -29,7 +29,7 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 5. Portal Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #10, #11 | Yes — `Dispatch` branch `stage5-portal-reconciliation` |
 | 6. Archive / IFTA Reconciliation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #13 (+ IFTA migration onto Stage 4 output) — deferred to a future Stage 6 *build* package | No — Claude-3 only, `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` |
 | 7. Security Foundation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #1, #2, #3, #4, #5, #21 — deferred to a future Stage 7 *build* package | No — Claude-3 only, `DISPATCH_STAGE7_SECURITY_RECONCILIATION_v1.md` |
-| 8. Version Doctrine Retrofit | Unblocked | #12 | Yes |
+| 8. Version Doctrine Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #12 — deferred to a future Stage 8 *build* package, possibly merged with a future Stage 6 build | No — Claude-3 only, `DISPATCH_STAGE8_VERSION_DOCTRINE_RECONCILIATION_v1.md` |
 | 9. Verification Workflow Retrofit | Pending Stage 7 | #6, #15 | Yes |
 | 10. Alert Governance Retrofit | Unblocked | #16, #17 | Yes |
 | 11. MVP Integration | Pending Stages 4–10 | #9, #14 (+ opportunistic #18/#19 per Open Question) | Yes |
@@ -251,7 +251,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 8 — Version Doctrine Retrofit
 
-**Depends on:** Stage 5 complete (Sandbox version pattern already proven).
+**Status: REDEFINED AS ANALYSIS-ONLY AND DELIVERED.** Mike instructed Architecture Reconciliation Mode — no code, no Dispatch repository changes, no PR, no migrations, no new tables, no build package. Delivered as `DISPATCH_STAGE8_VERSION_DOCTRINE_RECONCILIATION_v1.md` (Claude-3 only). The original build scope below (Jules item #12) is deferred to a future Stage 8 *build* launch package, not authorized by this delivery — and per the reconciliation's own finding, may be best merged with a future Stage 6 Archive build package rather than built separately.
+
+**Depends on:** Stage 5 complete (Sandbox version pattern already proven). ✅ (for the deferred future build scope; not required for the analysis delivered)
 
 **Purpose:** Extend version/last-change fields to Library and Archive records (Sandbox is already covered by Stage 5).
 
