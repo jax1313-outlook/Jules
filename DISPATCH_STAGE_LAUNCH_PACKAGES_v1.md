@@ -23,8 +23,8 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | Stage | Status | Jules Items Covered | Code Touched? |
 |---|---|---|---|
 | 1. Inventory Freeze | **Approved** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | No |
-| 2. Documentation Import | Unblocked — awaiting open-question answers | none | No (docs only) |
-| 3. Blueprint Alignment | Pending Stage 2 | none | Yes — `CLAUDE.md` only |
+| 2. Documentation Import | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage2-documentation-import` |
+| 3. Blueprint Alignment | Unblocked — awaiting open-question answer | none | Yes — `CLAUDE.md` only |
 | 4. Data Engine / Spine Reconciliation | Pending Stage 3 | #7, #8 | Yes — new `dispatch/spine/` |
 | 5. Portal Reconciliation | Pending Stage 4 | #10, #11 | Yes |
 | 6. Archive / IFTA Reconciliation | Pending Stage 4 | #13 (+ IFTA migration onto Stage 4 output) | Yes |
@@ -72,7 +72,7 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 2 — Documentation Import
 
-**Status: Open Question 1 resolved.** Awaiting Open Question 2 confirmation (or "Approve Stage 2") before execution.
+**Status: APPROVED AND EXECUTED** — "Approve Stage 2", recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`. Executed to `jax1313-outlook/Dispatch` branch `stage2-documentation-import` (commit `fc75bab`); branch pushed, no pull request opened.
 
 **Depends on:** Stage 1 signed off. ✅ (`DISPATCH_BLUEPRINT_DECISION_LOG.md`, 2026-08-10)
 
