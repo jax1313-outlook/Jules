@@ -24,8 +24,8 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 |---|---|---|---|
 | 1. Inventory Freeze | **Approved** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | No |
 | 2. Documentation Import | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage2-documentation-import` |
-| 3. Blueprint Alignment | Unblocked — awaiting open-question answer | none | Yes — `CLAUDE.md` only |
-| 4. Data Engine / Spine Reconciliation | Pending Stage 3 | #7, #8 | Yes — new `dispatch/spine/` |
+| 3. Blueprint Alignment | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage3-blueprint-alignment` |
+| 4. Data Engine / Spine Reconciliation | Unblocked — awaiting open-question answers | #7, #8 | Yes — new `dispatch/spine/` |
 | 5. Portal Reconciliation | Pending Stage 4 | #10, #11 | Yes |
 | 6. Archive / IFTA Reconciliation | Pending Stage 4 | #13 (+ IFTA migration onto Stage 4 output) | Yes |
 | 7. Security Foundation | Pending Stage 4 | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
@@ -102,7 +102,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 3 — Blueprint Alignment
 
-**Depends on:** Stage 2 complete.
+**Status: APPROVED AND EXECUTED** — "Approve Stage 3", recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`. Executed to `jax1313-outlook/Dispatch` branch `stage3-blueprint-alignment` (commit `4b60ead`, branched from `stage2-documentation-import`); branch pushed, no pull request opened.
+
+**Depends on:** Stage 2 complete. ✅
 
 **Purpose:** Update Dispatch's `CLAUDE.md` to reference the imported Final Blueprint alongside its existing CIN-Lite architecture spec, reconciling subsystem boundaries so a future builder isn't left guessing which "five layers" apply where.
 
