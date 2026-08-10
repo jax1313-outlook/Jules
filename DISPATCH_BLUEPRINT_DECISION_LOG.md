@@ -193,4 +193,20 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 12: Manager Foundation — build approved, design approved, executed
+
+**Stage:** Stage 12 — Manager Reconciliation and Build (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`)
+**Approved by:** Mike (owner)
+**Approval, verbatim (build authorization):** "Approve Stage 12 build"
+**Design:** `DISPATCH_STAGE12_MANAGER_BUILD_DESIGN_v1.md` — narrowed `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md`'s Phase M2 (Notification Store) + Phase M3 (Portal Card Preparation) into a concrete build prompt: a read-only Staff Report generator over five existing signal sources, surfaced through one new `/manager` Portal page. Flagged one finding before implementation: nothing in `portal/` rendered anything from the Spine's `portal_cards` table (the concrete form of Stage 11's Jules #9 gap); resolved narrowly with one new read-only route rather than the general Sandbox/Work Item bridge. Found that a fully-allowed transition path to `PORTAL_CARD_CREATED` already exists that never touches the `ROUTED_TO_MANAGER` dead end, so that amendment (listed as a build-matrix item in the buildout design) was not needed for this build.
+**Approval, verbatim (design):** "Approve design"
+**Execution:** `jax1313-outlook/Dispatch` branch `stage12-manager-foundation` (based on `stage7-security-foundation`), commit `acb9d76`. New `dispatch/manager/` module (`signals.py`, `classify.py`, `priority.py`, `staff_report.py`), `portal/routes/manager.py` (`GET /manager` only), `portal/templates/manager.html`. Zero new database tables, zero Spine schema changes — every created Work Item moves through `CREATED → VALIDATION_PENDING → VALIDATED → PORTAL_CARD_PENDING → PORTAL_CARD_CREATED`, all four transitions already allowed since Stage 4. 30 new tests (`tests/test_manager_foundation.py`); full suite re-run clean at 2,432 tests, 0 failures, 0 errors (2,402 baseline + 30 new). Live dev-server walkthrough confirmed correct classification/ranking/rendering across all five signal types and the dedup-vs-display fix (cards stayed visible across three consecutive page loads with zero duplicates). Branch pushed, no pull request opened.
+**Implementation-time corrections flagged:** (1) the build design listed `dispatch.services.check_overdue_settlements()` as read-only; it mutates state and sends an email as a side effect, so `signals.py` instead reads the *result* of that scan via `list_settlements(payment_status="overdue")`, confirmed by a structural guard test. (2) A live-walkthrough-only defect: the first working version returned only cards materialized in that exact request as `"cards"`, so dedup correctly blocking duplicate creation was also silently hiding already-materialized, still-unresolved cards from the page after their first view. Fixed by separating "materialize at most once per signal" (dedup, unchanged) from "display every currently-active card" (`_active_cards()`, re-read fresh every request) — re-verified live and by test before this stage was considered complete.
+**Scope not built:** Phases M4 (Stage Gate Monitor), M5 (Archive/IFTA dedicated monitor), M6 (Security Alert Monitor), M7 (Policy Routing Hook candidate) — all remain deferred, unapproved future work, per the build design's explicit out-of-scope section. The card-level unification Conflict (three independent 0–5 implementations across `sandbox.py`/`conflict.py`/`PortalCard`) also remains unresolved, flagged but not addressed by this build.
+**Effect:** Dispatch now has a working, tested, narrowly-scoped Manager function producing real Portal Cards from real signals, with the fixed "This is a recommendation only. No action is authorized. Mike decides." closing sentence on every one. Stage 13 (Testing and Hold Review) can now aggregate Stage 12's test suite along with every prior stage's, as already anticipated when Stage 12 was added to the plan.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
