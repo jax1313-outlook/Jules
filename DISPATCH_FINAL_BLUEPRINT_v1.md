@@ -339,7 +339,12 @@ Intelligence must never: decide whether Mike pursues a load or contract, book a 
 
 ## 8. Library Blueprint
 
-Library stores approved reusable truth, approved facts, approved templates, approved forms, approved rate sheets, reusable packet language, company data, customer-growth materials, and approved production parts. Library is not temporary workspace and does not create truth — it stores material approved by Mike or an approved workflow (Constitution §7.4). Library begins as a reliable deterministic service; cognitive assistance (classification, duplicate detection, recommendation) may be added later.
+Library stores approved reusable truth, approved facts, approved templates, approved forms, approved rate sheets, reusable packet language, company data, customer-growth materials, and approved production parts. Library is not temporary workspace. Library begins as a reliable deterministic service; cognitive assistance (classification, duplicate detection, recommendation) may be added later.
+
+Library has two distinct ingestion paths, governed differently (full doctrine: `LIBRARY_INGESTION_RULE.md`):
+
+- **Human-placed documents** — accepted immediately on placement, per Section 8.3a. A human placing a document into Library is itself the approval act.
+- **Publisher-generated, Intelligence-nominated, or Archive-nominated candidates** — still require the Library Promotion Workflow (Section 8.3) before entering Library as truth.
 
 ### 8.1 Approved Facts, Templates, Rate Sheets, Packet Language, Company Data
 
@@ -349,16 +354,26 @@ These are the core Library asset classes. Each asset carries a status of `APPROV
 
 Every Library asset follows Dispatch Version Doctrine (Section 11): a `current` pointer to the active version and retained prior versions, distinguishable from the current at all times.
 
-### 8.3 Library Promotion Workflow
+### 8.3 Library Promotion Workflow (Cognitively-Derived and Nominated Candidates)
+
+This workflow governs Publisher-generated, Intelligence-nominated, and Archive-nominated candidates only. It does not apply to documents a human places directly into Library — see Section 8.3a.
 
 1. A candidate is nominated (by Publisher, Intelligence, or Archive review) with source references and verification classification (Section 12).
 2. The candidate is presented to Mike as a Library promotion card (Portal Level 3 or higher).
 3. Mike approves, rejects, or requests revision through an authenticated Authority action.
 4. On approval, the Spine records an `APPROVE_LIBRARY_PROMOTION` event and the asset enters Library as version 1 (or a new version of an existing asset).
 
+### 8.3a Human Ingestion Rule
+
+Any document placed into any Library by a human is accepted immediately — no verification workflow, no approval workflow, no promotion workflow. The human's act of placing the document is the approval act. This applies to every Library section, including the Security sub-library (Section 8.9), where the PIN-protected access requirement governs *who may place or read* material, not *whether placed material is approved*.
+
+This rule does not apply to Publisher-generated assets, which continue to follow the Library Promotion Workflow (Section 8.3) and Publisher's own review/approval process (Section 6.9), and does not create a bypass for cognitively-derived material routed through a human's hands without genuine human review. Full doctrine: `LIBRARY_INGESTION_RULE.md`.
+
 ### 8.4 Approved Truth Boundary
 
-Only Verified facts, or Partially Verified facts Mike explicitly approves for the specific use, may enter Library as truth (Section 12.4). Raw Intelligence guesses, unverified internet material, or unapproved drafts may never be promoted.
+For cognitively-derived candidates (Section 8.3), only Verified facts, or Partially Verified facts Mike explicitly approves for the specific use, may enter Library as truth (Section 12.4). Raw Intelligence guesses, unverified internet material, or unapproved drafts may never be promoted this way.
+
+For human-placed documents (Section 8.3a), the human's placement is the truth boundary — no separate verification classification gates entry. The distinction is source, not content: a human handing the system a real document is not the same act as a cognitive function inferring or drafting one.
 
 ### 8.5 Relationship to Publisher
 
@@ -374,7 +389,20 @@ Archive material may be nominated for Library review but never automatically bec
 
 ### 8.8 Version Doctrine Applied to Library
 
-Library assets display `Ver: X` and a `Last Change:` label. Superseded versions remain retrievable per the retention rule in Section 9 (Current Version + Three Previous Versions, older versions entering the Archive Review Queue).
+Library assets display `Ver: X` and a `Last Change:` label. Superseded versions remain retrievable per the retention rule in Section 9 (Current Version + Three Previous Versions, older versions entering the Archive Review Queue). This applies identically to human-placed and cognitively-promoted assets — immediate acceptance on ingestion does not exempt a record from version tracking.
+
+### 8.9 Security Sub-Library
+
+Library includes a distinct Security sub-library for security-sensitive material (PIN policy documents, credential-handling procedures, access-control records, and other material `SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md` governs).
+
+- **PIN-protected access** — opening the Security sub-library requires a separate, valid PIN check at the moment of access, distinct from the general Portal session login PIN (Security Spec §4.3).
+- **PIN reset capability** — an Authority user may reset the Security sub-library's access PIN through the existing governed PIN reset workflow (Security Spec §4.5) — Authority approval or an approved reset workflow, never a silent reset.
+- Governed by Security Spec §11 (Library and PIN Records): may store PIN-related and credential-control records, but must never expose readable PIN values to Publisher, Intelligence, Driver users, External Viewers, or any cognitive function.
+- The Human Ingestion Rule (Section 8.3a) still governs *what* enters the Security sub-library; the PIN-protected access requirement governs *who may reach it*. These are independent controls — one is not a substitute for the other.
+
+### 8.10 Scanner API Integration (Future Build Item)
+
+A Scanner API integration — physical/network document scanner intake feeding directly into Library ingestion — is identified as a future build item, not authorized for implementation now. It is recorded here so the Library ingestion path (Section 8.3a) is designed to accept a scanner-originated document the same way it accepts any other human-placed document, once built. No scanner vendor, protocol, or implementation detail is specified or authorized by this blueprint. Priority: Future.
 
 ---
 
@@ -777,7 +805,7 @@ Telematics data is strictly an input to deterministic Spine calculation and Inte
 - Manager event triggers (workflow events and exception conditions at minimum; scheduled reviews may follow).
 - Publisher draft flow for at least one packet type, with source grounding and status labeling.
 - Intelligence interpretation and verification (Verified/Partially Verified/Unverified/Rejected classification) for at least one intake category.
-- Library basic approved assets (storage, versioning, current pointer).
+- Library basic approved assets (storage, versioning, current pointer), including immediate acceptance of human-placed documents per the Human Ingestion Rule (Section 8.3a).
 - Archive basic retention (storage, version retention rule).
 - Version display (`Ver: X` and `Last Change:`) on Portal cards.
 - PIN authentication (Identity, PIN, Session records; Authority role at minimum).
@@ -792,6 +820,8 @@ Telematics data is strictly an input to deterministic Spine calculation and Inte
 - Autonomous booking of any kind.
 - Complex RAG or vector-database-backed retrieval — Library remains a deterministic, directly-queried store for MVP.
 - Multi-agent mesh of any kind — MVP uses exactly the six organizational functions and the Spine, nothing more.
+- Security sub-library PIN-gated access (Section 8.9) — build after the Security Foundation wave lands.
+- Scanner API integration (Section 8.10) — Future build item, not MVP.
 
 ### 18.3 What MVP Proves
 
@@ -986,6 +1016,7 @@ This structure keeps deterministic machinery (`spine/`), organizational function
 | Sessions | Security |
 | Permissions | Security |
 | Library Assets | Library |
+| Security Sub-Library Access Records | Library / Security |
 | Archive Records | Archive |
 | Version Records | Spine (shared field pattern) / applies across Library, Archive, Publisher, Intelligence, Portal |
 | Alert Rules | Spine / Portal (governance controls) |
