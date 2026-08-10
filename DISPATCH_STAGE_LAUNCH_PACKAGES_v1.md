@@ -72,7 +72,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 2 — Documentation Import
 
-**Depends on:** Stage 1 signed off.
+**Status: Open Question 1 resolved.** Awaiting Open Question 2 confirmation (or "Approve Stage 2") before execution.
+
+**Depends on:** Stage 1 signed off. ✅ (`DISPATCH_BLUEPRINT_DECISION_LOG.md`, 2026-08-10)
 
 **Purpose:** Copy governing Claude-3 documents into a new `dispatch/docs/` directory so builders working directly in Dispatch have doctrine alongside the code they're writing.
 
@@ -85,10 +87,10 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 **Findings:** Dispatch's own `CLAUDE.md` already references an external authoritative spec (`Final_Architecture_for_Hybrid_CIN-Lite_System (1).docx`) the same way this stage proposes — there's direct precedent in the repo for "doctrine lives alongside code, referenced not duplicated in spirit."
 
 **Open Questions for Mike:**
-1. Full Claude-3 document set (21+ files), or only the four most load-bearing (Constitution, Final Blueprint, Security Spec, Spine Spec) plus the Library Ingestion Rule?
-2. Should `dispatch/docs/` be clearly marked "mirror — refreshed from Claude-3, do not edit here," or does Mike want a lighter-touch reference instead of a full copy?
+1. ~~Full Claude-3 document set (21+ files), or only the four most load-bearing (Constitution, Final Blueprint, Security Spec, Spine Spec) plus the Library Ingestion Rule?~~ **Resolved:** the four load-bearing documents plus the Library Ingestion Rule — five files total: `DISPATCH_CONSTITUTION_v3.md`, `DISPATCH_FINAL_BLUEPRINT_v1.md`, `SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md`, `DISPATCH_SPINE_SPECIFICATION_v1.md`, `LIBRARY_INGESTION_RULE.md`. Not the full 21+ file set.
+2. Should `dispatch/docs/` be clearly marked "mirror — refreshed from Claude-3, do not edit here," or does Mike want a lighter-touch reference instead of a full copy? **Default applied pending confirmation:** mark it a mirror — add a short `dispatch/docs/README.md` stating these five files are refreshed from Claude-3 and should not be edited in place.
 
-**Deliverables:** `dispatch/docs/` populated per Mike's answer to Open Question 1.
+**Deliverables:** `dispatch/docs/` populated with the five files named in Open Question 1, plus a short `dispatch/docs/README.md` mirror notice.
 
 **Test plan:** None (documentation only).
 
