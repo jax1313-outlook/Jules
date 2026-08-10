@@ -25,10 +25,10 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 1. Inventory Freeze | **Approved** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | No |
 | 2. Documentation Import | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage2-documentation-import` |
 | 3. Blueprint Alignment | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage3-blueprint-alignment` |
-| 4. Data Engine / Spine Reconciliation | Unblocked — awaiting open-question answers | #7, #8 | Yes — new `dispatch/spine/` |
-| 5. Portal Reconciliation | Pending Stage 4 | #10, #11 | Yes |
-| 6. Archive / IFTA Reconciliation | Pending Stage 4 | #13 (+ IFTA migration onto Stage 4 output) | Yes |
-| 7. Security Foundation | Pending Stage 4 | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
+| 4. Data Engine / Spine Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #7, #8 | Yes — `Dispatch` branch `stage4-spine-schemas` |
+| 5. Portal Reconciliation | Unblocked | #10, #11 | Yes |
+| 6. Archive / IFTA Reconciliation | Unblocked | #13 (+ IFTA migration onto Stage 4 output) | Yes |
+| 7. Security Foundation | Unblocked | #1, #2, #3, #4, #5, #21 | Yes — new `portal/security/` |
 | 8. Version Doctrine Retrofit | Pending Stage 5 | #12 | Yes |
 | 9. Verification Workflow Retrofit | Pending Stages 7 + 8 | #6, #15 | Yes |
 | 10. Alert Governance Retrofit | Pending Stage 5 | #16, #17 | Yes |
@@ -131,7 +131,9 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 4 — Data Engine / Spine Reconciliation
 
-**Depends on:** Stage 3 complete.
+**Status: APPROVED AND EXECUTED** — Open questions: "Same file, coexist during transition". Implementation: "Approve Stage 4", recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`. Executed to `jax1313-outlook/Dispatch` branch `stage4-spine-schemas` (commits `09e51c7`, `bca3fcd`); branch pushed, no pull request opened. See `DISPATCH_STAGE4_SPINE_SCHEMA_DESIGN_v1.md` (design) and `STAGE4_SPINE_SCHEMA_WALKTHROUGH_REPORT_v1.md` (in the Dispatch repo, walkthrough).
+
+**Depends on:** Stage 3 complete. ✅
 
 **Purpose:** Build the generic Spine schemas (Work Item, Event, Portal Card, Approval Event, Conflict Event, Audit Event), informed by — not replacing — `sandbox.py`'s existing state/event pattern and `IFTAReportApproval`'s proven freeze mechanics.
 
