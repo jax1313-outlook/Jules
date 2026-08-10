@@ -224,4 +224,19 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 12: Manager Phase M4 — design requested, design approved, executed
+
+**Stage:** Stage 12 — Manager Reconciliation and Build (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`), third build pass
+**Approved by:** Mike (owner)
+**Instruction, verbatim:** "Design the dispatch/docs/ mirror approach for M4"
+**Design:** `DISPATCH_STAGE12_MANAGER_M4_MIRROR_DESIGN_v1.md` — resolved the open question the Pass 2 design deliberately left unanswered: how Manager can know Claude-3's stage status without a live cross-repo integration. Corrected a path error in the Pass 2 design along the way ("Stage 2's `dispatch/docs/` mirror" should have read `docs/` — confirmed by direct inspection, no such directory as `dispatch/docs/` exists). Proposed extending Stage 2's existing `docs/` mirror with one new hand-authored, structured file (`docs/STAGE_STATUS.json`, JSON rather than YAML specifically to avoid adding a dependency this codebase doesn't have), refreshed as one more step in the same manual habit that already updates the Claude-3 tracking documents after every stage action. Proposed keeping Stage Gate status entirely outside the existing signal pipeline (a standing snapshot that gets replaced on refresh, not a discrete event needing dedup) and requiring it to fail soft — a missing or malformed mirror file must never affect the already-shipped signal pipeline.
+**Approval, verbatim (design):** "Approve design"
+**Execution:** `jax1313-outlook/Dispatch` branch `stage12-manager-foundation`, commit `253b04a`. New `docs/STAGE_STATUS.json` (hand-authored, reflecting all 14 stages' actual current status as of this entry) and `dispatch/manager/stage_gate.py` (read-only: `load_stage_status()` validates schema/shape, `build_summary()` builds a display-ready summary; the only I/O anywhere in the module is `Path.read_text()` against that one file). `portal/routes/manager.py` and `portal/templates/manager.html` extended with a separate Stage Gate Status panel. `docs/README.md` updated to document the new mirror file. 8 new tests (`tests/test_manager_foundation.py`, 50 total); full suite re-run clean at 2,452 tests, 0 failures, 0 errors (2,444 baseline + 8 new). Live dev-server walkthrough confirmed the panel renders correctly against the real mirror file (14 stages tracked, next recommended stage 6, reasoning shown, fixed closing sentence present), then proved the fail-soft contract directly by moving `docs/STAGE_STATUS.json` aside mid-walkthrough — `/manager` still returned 200 with the full signal pipeline intact and only the Stage Gate panel absent — before restoring the file. Branch pushed, no pull request opened.
+**Scope not built:** Nothing was deferred within M4 itself — the phase is fully delivered as designed. M5's Archive half remains the one concretely-blocked item left in Stage 12's original scope, still waiting on the not-yet-authorized Stage 6 Archive Review Queue build. M7 (policy routing hook) remains deferred pending a separate decision on whether a policy engine is wanted at all.
+**Effect:** Manager can now surface Migration Plan stage status — current status, dependencies, blocked items, and a hand-set recommended next stage — on `/manager`, without Manager ever reading Claude-3 doctrine prose or reaching GitHub at runtime, and without any risk to the already-shipped signal pipeline if the mirror ever goes stale or missing. Of Stage 12's original seven-phase scope (M1–M7), only M5's Archive half and M7 remain open.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
