@@ -209,4 +209,19 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-10 — Stage 12: Manager Phases M5 (IFTA half) + M6 — build approved, design approved, executed
+
+**Stage:** Stage 12 — Manager Reconciliation and Build (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`), second build pass
+**Approved by:** Mike (owner)
+**Approval, verbatim (build authorization):** "Approve Stage 12 build for phases M4-M6"
+**Design:** `DISPATCH_STAGE12_MANAGER_M4_M6_BUILD_DESIGN_v1.md` — investigated readiness of all three requested phases before scoping any code. Found M4 (Stage Gate Monitor) not buildable as scoped: no cross-repo read mechanism between Claude-3 and Dispatch exists anywhere, and building one was outside what this document could unilaterally authorize. Found M5 (Archive/IFTA Monitor) only half-buildable: the Archive half is blocked on the still-unbuilt Archive Review Queue (Stage 6, not yet authorized, re-confirmed unchanged); the IFTA half is fully buildable against existing read-only functions. Found M6 (Security Alert Monitor) fully buildable against `dispatch/security/store.py::list_security_events()`, already built and tested in Stage 7. Recommended building M6 in full and M5's IFTA half only, deferring M4 and M5's Archive half.
+**Approval, verbatim (design):** "Approve design"
+**Execution:** `jax1313-outlook/Dispatch` branch `stage12-manager-foundation` (continuing on top of the M2+M3 build, commit `acb9d76`), commit `72a38be`. New `dispatch/manager/security_monitor.py` — reads security events, groups `LOGIN_FAILURE` by identity and `PERMISSION_DENIED` by `(user, path)`, surfaces a pattern at 3+ occurrences in a rolling 24h window, zero write access anywhere in `dispatch.security`. Extended `signals.py` with `IFTA_EXCEPTION` — exceptions on draft (unsealed) IFTA report approvals only. `staff_report.py` required zero changes — both new signal types flow through the existing pipeline unmodified. 12 new tests (`tests/test_manager_foundation.py`, 42 total); full suite re-run clean at 2,444 tests, 0 failures, 0 errors (2,432 baseline + 12 new). Live dev-server walkthrough confirmed dedup holds even as the underlying security-event count kept growing (5 total failures logged, still exactly 1 card), and that a sealed IFTA approval's exceptions correctly stop appearing in fresh signal collection while the already-materialized card knowingly persists. Branch pushed, no pull request opened.
+**Scope not built:** Phase M4 (blocked — no cross-repo mechanism exists; a Mike decision on approach is needed before any future design pass) and M5's Archive half (blocked — needs the Stage 6 Archive Review Queue build, not yet authorized). Phase M7 (policy routing hook) remains deferred pending a separate decision on whether a policy engine is wanted at all.
+**Effect:** Manager now surfaces security-relevant patterns and pre-seal IFTA compliance exceptions alongside its original five signal sources, still strictly read-only against Security, still creating zero new database tables, still never approving/booking/submitting anything. Stage 13 (Testing and Hold Review) aggregates this expanded test suite along with everything prior. M4 and M5's Archive half remain the two concretely-identified blockers standing between Stage 12 and full closure of its original Phase M2–M7 scope.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
