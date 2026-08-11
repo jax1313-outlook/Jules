@@ -9,6 +9,11 @@ branch's finalized scope.
 Rule: No code changes authorized by this document. This is a mission definition to scope a
 future piece of work, not the work itself.
 
+**Investigation phase complete: see `DISPATCH_ARCHIVE_ARCHITECTURE_REVIEW_FINDINGS_v1.md`
+(same repo).** Real code investigation on `main` found four archive-adjacent data sources, not
+the two this mission document originally assumed — the findings document reframes Section 3's
+questions accordingly. Still no code change, no branch, no implementation plan authorized.
+
 ---
 
 ## 1. What This Mission Is
