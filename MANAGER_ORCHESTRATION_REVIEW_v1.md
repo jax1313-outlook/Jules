@@ -1,8 +1,11 @@
 # MANAGER_ORCHESTRATION_REVIEW_v1
 
 Program: Dispatch
-Status: **Investigation complete (Phases 1 and 2). Findings and a design recommendation only —
-no implementation authorized by this document.**
+Status: **CLOSED — decision made.** Mike issued the Manager Preservation Decision: Manager
+remains on the roster, designated DORMANT / RESERVED CAPABILITY / NOT IMPLEMENTED. Not built,
+not deleted, not refactored. Recorded permanently in `jax1313-outlook/Dispatch` at
+`docs/MANAGER.md` (`dispatch/canonical-reconciliation-integration`, commit `f92cc9f`) —
+documentation only, no code/route/data model, no runtime participation, no data ownership.
 Origin: Named in this session's status-confirmation message alongside `ARCHIVE_DEAD_SECTION_
 VALIDATION_MISSION_v1`, `SYNC_ENGINE_AUTHORITY_AND_BOUNDARY_REVIEW_v1`, and `INTELLIGENCE_
 APPROVAL_CHAIN_REVIEW_v1`; sharpened into a concrete mission after `DISPATCH_INTEGRATION_
