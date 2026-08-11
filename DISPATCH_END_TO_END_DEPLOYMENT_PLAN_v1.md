@@ -92,15 +92,35 @@ Core target:
 Publisher -> Proposal Writer -> Draft/Outline -> Approval discipline -> Archive destination
 ```
 
-**Recorded exactly as specified so far.** The directive establishing this document cut off
-immediately after "Archive destination," before Stage 2's required questions, constraints, or
-required scope-output filename were given (Stage 1's equivalent detail was fully specified;
-Stage 2's was not). Rather than inventing that detail, per this program's No-Fabrication
-discipline, Stage 2 stays recorded at exactly this level of detail until the rest is provided.
-The evidence base already exists to scope it fully once directed —
-`DISPATCH_INTEGRATION_BRIDGE_INVESTIGATION_v1.md` and Stage 6 Link 5's findings already trace
-the vocabulary/identifier/approval-semantics mismatches between Publisher's action queue and
-`cin_lite`'s email-decision flow in detail.
+Constraints, matching Stage 1's "stay narrow and mechanical" discipline: do not reopen Archive
+consolidation (Option A stands — a drafted proposal's canonical home stays `cin_lite/archive.py`,
+not migrated into `portal/models/archive.py`). Do not rebuild `cin_lite/agents/proposal_writer.py`
+or its outline logic — reuse as-is. Do not merge `publisher.ACTION_TYPES` and
+`cin_lite.control.ACTIONS` into one shared vocabulary — bridge via an explicit mapping, not a
+unification. Do not weaken either system's existing approval gate (Publisher's `approved_by`
+identity check, `cin_lite`'s HMAC-token verification) to make them fit together. Do not attempt
+to unify `sandbox_id`/`action_id` with `contract_id` into one identifier system — use an explicit
+reference field instead.
+
+Required questions for Stage 2:
+
+1. What Publisher `action_type`(s) should be eligible to trigger a proposal draft?
+2. What minimum identifier bridge is needed between Publisher's `action_id`/`sandbox_id` and
+   `cin_lite`'s `contract_id`?
+3. What triggers the draft — a new Publisher status transition, an explicit new action, or a
+   manual trigger separate from the existing `PENDING→DRAFT` flow?
+4. Does drafted content flow back into Publisher's own queue as new data on the action, or stay
+   entirely in `cin_lite`'s store, referenced only by ID?
+5. What approval discipline applies to a bridged draft — Publisher's existing `approved_by` gate
+   extended to cover it, `cin_lite`'s existing token-based approval, or a new explicit step?
+6. Where does approved content get archived, given Option A?
+7. What test proves the full path works?
+8. What UI/Portal changes are required, if any?
+
+Required output: **`STAGE_2_PUBLISHER_PROPOSAL_WRITER_BRIDGE_SCOPE_v1.md`** (companion document,
+this session), which surfaces a prerequisite finding question 1 exposes: full scoping done there.
+
+**Do not implement Stage 2 until scope is approved.**
 
 ### Beyond Stage 2
 
