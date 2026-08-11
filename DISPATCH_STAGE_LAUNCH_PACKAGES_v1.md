@@ -429,6 +429,8 @@ All five passes built and delivered to the `Dispatch` repository as `dispatch/ma
 
 **Stop/Go:** **Go.** Mike's explicit sign-off closes this stage. Stage 14 (Production-Intent Promotion Decision) now has a real, current Hold Review to point to, including the still-open branch-merge question this stage did not resolve for it.
 
+**Certification scope clarification (added 2026-08-11, per Mike's explicit instruction):** Stage 13 certifies **(A) the current implemented Dispatch codebase** — the aggregate of what Stages 4–12 actually built, tested clean at 2,489 tests with a now-correctly-measured coverage gate. It does **not** certify **(B) the full intended Dispatch architecture**. Publisher, Intelligence, and Library are named, active architecture domains with doctrine reconciliation and build-package preparation still pending — consistent with this stage's own §22 inventory finding that Fact grounding, Publisher no-fabrication, Intelligence verification, and Alert governance test categories are "not yet applicable given current build scope," not satisfied. "Stage 13 passed" must not be read as "Dispatch is complete." See `DISPATCH_BLUEPRINT_DECISION_LOG.md` for the full clarification entry.
+
 ---
 
 ## Stage 14 — Production-Intent Promotion Decision
@@ -445,8 +447,11 @@ All five passes built and delivered to the `Dispatch` repository as `dispatch/ma
 
 **Findings:** `DEPLOY_VPS.md`'s two self-reported blockers (no authentication; Flask debug server) must be independently re-verified as closed at this point, not assumed closed simply because Stage 7 shipped earlier in the sequence.
 
+**Scope boundary, carried forward from Stage 13's certification clarification:** Any promotion recommendation made under this stage must acknowledge that Stage 13 certified the current implemented codebase, not the full intended Dispatch architecture. Publisher, Intelligence, and Library remain active, named architecture workstreams with reconciliation and buildout still pending as of this stage's own §22 inventory. A "Go" recommendation here is a statement about what has been built and tested, not a statement that Dispatch's architecture is finished.
+
 **Open Questions for Mike:**
 1. Does Mike want a formal re-walk of `DEPLOY_VPS.md`'s "Blockers to Resolve" checklist as an explicit part of this stage, even though Stage 7 addressed them structurally?
+2. Does Mike want dedicated reconciliation missions opened for Publisher, Intelligence, and/or Library (matching the pattern already used for Manager — a `DISPATCH_..._BUILDOUT_DESIGN_v1.md`-style reconciliation before any build) before or independent of a Stage 14 promotion decision?
 
 **Deliverables:** A go/no-go decision from Mike, recorded the same way `DECISION_LOG.md` records every other governed approval — verbatim text, not a paraphrase.
 
