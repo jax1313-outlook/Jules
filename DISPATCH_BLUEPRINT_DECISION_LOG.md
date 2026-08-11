@@ -255,4 +255,20 @@ This log tracks planning/blueprint approvals only (which stage may proceed to bu
 
 ---
 
+---
+
+## 2026-08-11 — Stage 12: Manager Archive Wiring (completes M5) — design requested, design approved, executed
+
+**Stage:** Stage 12 — Manager Reconciliation and Build (`DISPATCH_STAGE_LAUNCH_PACKAGES_v1.md`), fourth build pass
+**Approved by:** Mike (owner)
+**Instruction, verbatim:** "Wire Manager to the new Archive Review Queue"
+**Design:** `DISPATCH_STAGE12_MANAGER_ARCHIVE_WIRING_DESIGN_v1.md` — found `classify.py`'s `ARCHIVE` class mapped to card level 1, one below the review bar of 2, since the M2+M3 build — dead code, never reachable until this pass wired in the first signal that would actually exercise it. Corrected to 2, matching `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §7's Portal Card Model table exactly. Followed the buildout design's explicit "per item" language (§11) for Archive Review cards rather than aggregating, flagging the volume tradeoff rather than silently picking a different design.
+**Approval, verbatim (design):** "Approve design"
+**Execution:** `jax1313-outlook/Dispatch` branch `stage12-manager-archive-wiring` (based on `stage6-archive-review-queue`), commit `44efaf5`. New `ARCHIVE_REVIEW_ITEM` signal source in `signals.py`, reading `portal.models.archive.list_review_queue()` directly — Manager never calls `mark_reviewed()`. Fixed the `ARCHIVE` card-level bug in `classify.py`. New Tier 7 mapping in `priority.py`, the exact tier the buildout design names for "Library, Archive, or cleanup work." `staff_report.py` needed zero changes — the eighth signal source in a row to confirm the orchestrator is genuinely source-type-agnostic. 8 new tests (`tests/test_manager_foundation.py`, 58 total); full suite re-run clean at 2,481 tests, 0 failures, 0 errors (2,473 baseline + 8 new). Live dev-server walkthrough seeded a backdated Archive record, confirmed it surfaced on `/manager` at Level 2/Tier 7, confirmed dedup across repeated page loads, then resolved it through the *real* Stage 6 `/archive` Keep/Delete route and confirmed a fresh Manager signal collection correctly stopped detecting it (while the already-materialized card knowingly persisted, the same accepted limitation carried from every prior pass). Branch pushed, no pull request opened.
+**A stray finding surfaced and fixed in the same pass:** `docs/STAGE_STATUS.json`'s `next_recommended_stage` still read "6," accurate when Pass 3 wrote it, stale now that Stage 6 has shipped. Refreshed as part of this same commit — `next_recommended_stage` now points to Stage 13 (Testing and Hold Review), with Stage 6's and this pass's own entries updated to reflect their completed status, test counts, and walkthrough reports.
+**Scope not built:** None within this pass's own scope — Archive Review Queue wiring is fully delivered. M7 (policy routing hook) remains the only phase of Manager's original M1–M7 scope still open, pending a separate Mike decision on whether a policy engine is wanted at all.
+**Effect:** Of `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md`'s original seven-phase scope (M1–M7), only M7 remains open. Manager now surfaces all eight of its identified signal sources — stalled loads, overdue settlements, open exceptions, unresolved Conflict Notices, IFTA suspect entries, IFTA exceptions, security event patterns, and Archive Review Queue items — through one consistent, tested, read-only pipeline.
+
+---
+
 *Format note: new entries are appended below the most recent one, most-recent-last. Do not edit or remove past entries — this file is a record, not a status board.*
