@@ -474,3 +474,26 @@ dead sections) is reported as a finding for Mike's decision, not executed or sch
 Human review required before any architecture change is authorized.
 
 Mike decides.
+
+---
+
+## Decision Record
+
+**Mike selected OPTION A — Maintain Separation.**
+
+Effective immediately: `portal/models/archive.py`, `cin_lite/archive.py`, `dispatch/store.py`'s
+retention table, and the Sandbox Archive Candidates view remain four separate systems. No
+consolidation, no migration, no merge is authorized now or implied by this decision. This closes
+the Archive Architecture Review mission at the decision point — no further investigation is
+outstanding at this scope.
+
+**No code changes result from this decision.** "Maintain separation" means *not* changing the
+storage architecture — there is nothing to implement.
+
+**What Option A leaves open, per its own "Required Future Missions" entry:** a small, separately-
+scoped **Archive Schema Cleanup** mission — resolving or removing the two dead sections
+(`location_history`, `broker_history`) and resolving Route Intelligence's ambiguous ownership.
+This is explicitly not started by this decision and would need its own separate go-ahead, same
+as every implementation step in this program has required so far.
+
+Mike decides.

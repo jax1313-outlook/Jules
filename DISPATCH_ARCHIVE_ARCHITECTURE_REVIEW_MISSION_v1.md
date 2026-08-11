@@ -1,7 +1,10 @@
 # DISPATCH_ARCHIVE_ARCHITECTURE_REVIEW_MISSION_v1
 
 Program: Dispatch
-Status: **Future work package — planning only. Not a scoped implementation task.**
+Status: **CLOSED — decision made.** Mike selected OPTION A (Maintain Separation) in
+`ARCHIVE_AUTHORITY_AND_OWNERSHIP_REPORT_v1.md`'s Decision Record. No consolidation, migration,
+or merge authorized. This mission's decision point is resolved; nothing further is outstanding
+at this scope.
 Origin: Spun out of `dispatch/canonical-reconciliation-integration` (Approval Chain Safety Gate
 branch) at Mike's direction, as Stage 5 item 4 of
 `DISPATCH_CANONICAL_ARCHITECTURE_RECONCILIATION_MATRIX_v1.md`, deliberately excluded from that
@@ -9,10 +12,14 @@ branch's finalized scope.
 Rule: No code changes authorized by this document. This is a mission definition to scope a
 future piece of work, not the work itself.
 
-**Investigation phase complete: see `DISPATCH_ARCHIVE_ARCHITECTURE_REVIEW_FINDINGS_v1.md`
-(same repo).** Real code investigation on `main` found four archive-adjacent data sources, not
-the two this mission document originally assumed — the findings document reframes Section 3's
-questions accordingly. Still no code change, no branch, no implementation plan authorized.
+**History:** Investigation phase — `DISPATCH_ARCHIVE_ARCHITECTURE_REVIEW_FINDINGS_v1.md` (found
+four archive-adjacent sources, not two). Full architecture review — `ARCHIVE_AUTHORITY_AND_
+OWNERSHIP_REPORT_v1.md` (found no true duplication anywhere; two dead Portal Archive sections;
+three decision options). **Decision — Option A selected, same document's Decision Record.**
+
+**What remains open, not started:** a small, separately-scoped **Archive Schema Cleanup**
+mission (resolve/remove `location_history`/`broker_history`, resolve Route Intelligence
+ownership) — needs its own future go-ahead.
 
 ---
 

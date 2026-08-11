@@ -238,4 +238,15 @@ own sequencing. The `dispatch/canonical-reconciliation-integration` branch is fi
 Approval Chain Safety Gate scope and is not to be expanded without a new, separate scoping
 decision.
 
+**Item 4 (Archive Architecture Review) — CLOSED.** Investigation
+(`DISPATCH_ARCHIVE_ARCHITECTURE_REVIEW_FINDINGS_v1.md`) found four archive-adjacent systems, not
+two. Full analysis (`ARCHIVE_AUTHORITY_AND_OWNERSHIP_REPORT_v1.md`) found no true duplication
+anywhere — the original "duplicate Archive engines, consolidate onto `cin_lite/archive.py`"
+premise did not hold up under evidence. Mike selected **Option A — Maintain Separation**. No
+consolidation, migration, or merge authorized. A smaller future "Archive Schema Cleanup" mission
+(two dead sections, ambiguous Route Intelligence ownership) remains open but unstarted.
+
+Item 5 (Integration Bridge — proposal writer under Publisher governance) remains open,
+unstarted, per its own mission document.
+
 Mike decides.
