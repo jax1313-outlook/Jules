@@ -77,7 +77,10 @@ Full scope, answering all eight required questions with evidence already on reco
 **`STAGE_1_INTELLIGENCE_LIBRARY_PUBLISHER_LINK_SCOPE_v1.md`** (companion document, this
 session).
 
-**Do not implement Stage 1 until scope is approved.**
+**STAGE 1 — IMPLEMENTED.** Approved and executed on `dispatch/canonical-reconciliation-
+integration` (commit `d77cbae`): `intelligence.promote_to_candidate()` (broker-type only) and
+`library.py`'s `_trigger_publisher_on_approval()` hook, exactly as scoped, no deviation. Full
+suite re-verified green.
 
 ### Stage 2 — Integration Bridge Mission
 

@@ -1,9 +1,9 @@
 # STAGE_1_INTELLIGENCE_LIBRARY_PUBLISHER_LINK_SCOPE_v1
 
 Program: Dispatch
-Status: **Scoping complete. Answers the eight required questions with evidence already on
-record — no new code investigation needed, no implementation authorized. Awaiting scope
-approval per `DISPATCH_END_TO_END_DEPLOYMENT_PLAN_v1.md`.**
+Status: **IMPLEMENTED.** Scope approved and executed on `dispatch/canonical-reconciliation-
+integration` (commit `d77cbae`), exactly as scoped below — no deviation. Full Dispatch suite
+re-verified green.
 Origin: Stage 1 of the locked-in end-to-end deployment plan.
 Rule: No code changes authorized by this document. Do not implement until scope is approved.
 
