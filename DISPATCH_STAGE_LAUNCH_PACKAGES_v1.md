@@ -27,13 +27,13 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 3. Blueprint Alignment | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none | Yes — `Dispatch` branch `stage3-blueprint-alignment` |
 | 4. Data Engine / Spine Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #7, #8 | Yes — `Dispatch` branch `stage4-spine-schemas` |
 | 5. Portal Reconciliation | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #10, #11 | Yes — `Dispatch` branch `stage5-portal-reconciliation` |
-| 6. Archive / IFTA Reconciliation | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #13 (+ IFTA migration onto Stage 4 output) — deferred to a future Stage 6 *build* package | No — Claude-3 only, `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` |
+| 6. Archive / IFTA Reconciliation | **Approved & executed (Archive Review Queue v1)** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #13 built, narrowed to age-based/portal-archive-only; IFTA migration onto Stage 4 output remains deferred to a future build pass | Yes — `Dispatch` branch `stage6-archive-review-queue` |
 | 7. Security Foundation | **Approved & executed (narrowed scope)** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #1, #2, #3, #21 (Identity/PIN/Session/Role/Audit) built; #4, #5 (retrofitting the three HMAC gates, broader page enforcement) deferred to a future Portal-Wide Enforcement stage | Yes — `Dispatch` branch `stage7-security-foundation` |
 | 8. Version Doctrine Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #12 — deferred to a future Stage 8 *build* package, possibly merged with a future Stage 6 build | No — Claude-3 only, `DISPATCH_STAGE8_VERSION_DOCTRINE_RECONCILIATION_v1.md` |
 | 9. Verification Workflow Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #6, #15 — deferred to a future Stage 9 *build* package | No — Claude-3 only, `DISPATCH_STAGE9_VERIFICATION_WORKFLOW_RECONCILIATION_v1.md` |
 | 10. Alert Governance Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #16, #17 — deferred to a future Stage 10 *build* package | No — Claude-3 only, `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` |
 | 11. MVP Integration | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #9, #14 — deferred; #9 identified as the critical Sandbox/Spine wiring gap | No — Claude-3 only, `DISPATCH_STAGE11_MVP_INTEGRATION_RECONCILIATION_v1.md` |
-| 12. Manager Reconciliation and Build | **Approved & executed (Phases M2, M3, M4, M5-IFTA-half, M6)** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | Not part of the original 22-item matrix — Manager has its own build matrix, see `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §21; M5's Archive half remains blocked, M7 remains deferred | Yes — `Dispatch` branch `stage12-manager-foundation` |
+| 12. Manager Reconciliation and Build | **Approved & executed (Phases M2, M3, M4, M5-IFTA-half, M6)** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | Not part of the original 22-item matrix — Manager has its own build matrix, see `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §21; M5's Archive half is no longer blocked as of Stage 6's Archive Review Queue build, but Manager is not yet wired to consume it (a separate follow-on task); M7 remains deferred | Yes — `Dispatch` branch `stage12-manager-foundation` |
 | 13. Testing and Hold Review | Pending Stage 12 | none new — aggregates all above | No new code, full regression |
 | 14. Production-Intent Promotion Decision | Pending Stage 13 | none | No |
 
@@ -193,30 +193,31 @@ Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeh
 
 ## Stage 6 — Archive / IFTA Reconciliation
 
-**Status: REDEFINED AS ANALYSIS-ONLY AND DELIVERED.** Mike's detailed charter explicitly scoped this stage to architecture reconciliation only — no code, no Dispatch repository changes, no PR, no migrations, no new tables. Delivered as `DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md` (Claude-3 only). The original build scope below (IFTA migration onto the generic Approval Event schema, Archive Review Queue) is deferred to a future Stage 6 *build* launch package, not authorized by this delivery.
+**Status: APPROVED & EXECUTED (Archive Review Queue v1), NARROWED SCOPE.** Reconciliation (`DISPATCH_STAGE6_ARCHIVE_IFTA_RECONCILIATION_v1.md`) delivered first, analysis-only. Mike then approved a build ("Approve Stage 6 build"). Investigation before scoping any code found `portal/models/archive.py::create_record()` silently no-ops on a repeat `source_id` — there is no multi-version history for Archive records at all, so the literal Version Retention Rule (`ARCHIVE_REVIEW_POLICY.md` §2, Current + 3 Previous) cannot be built until Stage 8 (Version Doctrine on Archive) exists. Also found the IFTA-to-generic-Approval-Event migration carries materially higher risk (touches a proven, tested, five-phase system) and an unresolved open question about historical rows. `DISPATCH_STAGE6_ARCHIVE_BUILD_DESIGN_v1.md` recommended splitting the original scope in two and building only an age-based Archive Review Queue for `portal/models/archive.py`, deferring the IFTA migration entirely — approved ("Approve design") and built. See `STAGE6_ARCHIVE_REVIEW_QUEUE_WALKTHROUGH_REPORT_v1.md` in the `Dispatch` repository for full verification detail.
 
-**Depends on:** Stage 4 complete (generic Approval Event schema exists). ✅ (for the deferred future build scope; not required for the analysis delivered)
+**Depends on:** Stage 4 complete (generic Approval Event schema exists — `APPROVE_ARCHIVE_KEEP`/`APPROVE_ARCHIVE_DELETE` have been defined and unused since Stage 4). ✅ Also draws on Stage 7 (Security Foundation — `authority_required`, reused directly on the new decision route) and Stage 12 (Manager — the create-a-Work-Item-then-record-the-Spine-action pattern, reused when a schema constraint required it). ✅
 
-**Purpose:** Migrate `IFTAReportApproval` onto the generic Approval Event schema as the pilot migration; build the Archive Review Queue.
+**Purpose (as built):** Age-based (180-day default, tunable, not doctrine) Archive Review Queue for `portal/models/archive.py` records: `list_review_queue()`, `mark_reviewed()` (refuses a second decision on an already-reviewed record), and an Authority-gated `POST /api/archive/review-decision` that records the Keep/Delete decision as a real `ApprovalEvent` with live session/user/role identity. "Deleted" records the disposition only — no physical removal of any record or evidence in this build.
 
-**Scope:** `dispatch/services.py`, `portal/models/archive.py`.
+**Scope (as built):** `portal/models/archive.py`, `portal/routes/api.py` (new route), `portal/routes/pages.py` (`/archive` enriched), `portal/templates/archive.html`, `portal/templates/base.html` (new JS). No file under `cin_lite/`, `dispatch/services.py`'s IFTA functions, `dispatch/spine/`, or `dispatch/security/` was modified — the Spine's approval/Work-Item machinery and Security's `authority_required` are consumed, not changed.
 
-**Doctrine source:** Archive Blueprint (`DISPATCH_FINAL_BLUEPRINT_v1.md` §9); Archive Review Policy.
+**Doctrine source:** Archive Blueprint (`DISPATCH_FINAL_BLUEPRINT_v1.md` §9); `ARCHIVE_REVIEW_POLICY.md` in full (§2's Version Retention Rule explicitly not yet satisfiable — flagged, not forced; §6's Delete Rule and §7's Keep Rule are what this build actually implements).
 
-**Jules Build Matrix items:** #13 (Archive Review Queue); the IFTA-to-Spine migration itself is called out explicitly in `DISPATCH_INTEGRATED_BLUEPRINT_v1.md` §9 as the reference pilot, not a separately numbered Jules item.
+**Jules Build Matrix items:** #13 (Archive Review Queue) built, narrowed to age-based/portal-archive-only. The IFTA-to-Spine migration (`DISPATCH_INTEGRATED_BLUEPRINT_v1.md` §9's reference pilot) remains entirely deferred to its own future build pass.
 
-**Findings:** `IFTAReportApproval`'s freeze / refuse-resubmission / idempotent-reapproval logic is proven and tested across five owner-approved phases — it must be re-pointed at the generic schema, never rewritten.
+**Findings:** `IFTAReportApproval`'s freeze/refuse-resubmission/idempotent-reapproval logic remains untouched — this build didn't need to re-point it at anything. A real bug was found and fixed during implementation, not left as a surprise: the build design assumed an `ApprovalEvent` could exist without a Work Item; `approval_events.work_item_id` is actually `NOT NULL` with an enforced foreign key (confirmed by a live `sqlite3.IntegrityError` the first time the route was exercised) — fixed by creating a minimal Work Item first, reusing the exact pattern Stage 12's `dispatch/manager/staff_report.py` already established, not inventing a new one.
 
 **Open Questions for Mike:**
-1. Does migrating IFTA onto the generic Approval Event schema require migrating already-sealed historical approval rows, or can existing rows stay in their current table untouched while only new approvals use the generic schema going forward?
+1. ~~Does migrating IFTA onto the generic Approval Event schema require migrating already-sealed historical approval rows...~~ **Not resolved — deliberately deferred.** This build does not touch the IFTA migration at all; the question remains open for whenever that separate future build pass is authorized.
+2. Should the IFTA migration and/or a physical purge mechanism (recording vs. actually deleting) be authorized as separate future build passes, and if so, in what order?
 
-**Deliverables:** IFTA gate running on the generic schema with provably zero behavior change; a working Keep/Delete Archive Review Queue.
+**Deliverables:** A working, Authority-gated Keep/Delete Archive Review Queue on `/archive`, with every decision recorded as a real, fully-identified `ApprovalEvent` + `AuditEvent`.
 
-**Test plan:** Archive retention tests; full regression across the existing ~120 IFTA-related tests (Phases 2–7) to confirm zero behavior change — this is a regression-test gate, not only a new-test gate.
+**Test plan (executed):** `tests/test_archive_review_queue.py` — 21 tests covering queue eligibility (age boundary), Keep/Delete authorization (unauthenticated rejected, non-Authority 403, Authority succeeds), `ApprovalEvent` correctness (real identity, correct action per disposition), no-physical-deletion (record/evidence untouched, structural guard against `unlink`/`rmtree`/`os.remove`), refuse-resubmission (409 on a second decision), and Portal rendering. Full regression: 2,473 tests, 0 failures (2,452 baseline + 21 new).
 
-**Walkthrough report:** Required — Mike runs one real IFTA submission/approval through the migrated path, exactly matching the existing per-phase convention.
+**Walkthrough report:** Delivered — `STAGE6_ARCHIVE_REVIEW_QUEUE_WALKTHROUGH_REPORT_v1.md` in the `Dispatch` repository. Live dev-server run: empty state confirmed, a backdated record seeded and correctly queued, unauthenticated/non-Authority rejection confirmed, an Authority decision recorded with real identity and verified directly against the database, the record confirmed physically untouched, the queue confirmed to exclude the now-reviewed record, and a repeat decision confirmed to return 409.
 
-**Stop/Go:** Go only if IFTA's existing tested behavior is provably unchanged.
+**Stop/Go:** **Go, for the narrowed scope (Archive Review Queue v1).** The IFTA-to-generic-schema migration remains fully deferred to its own future build pass — this stage's original Stop/Go criterion ("only if IFTA's existing tested behavior is provably unchanged") doesn't apply here because IFTA wasn't touched at all.
 
 ---
 
@@ -390,7 +391,7 @@ All three passes built and delivered to the `Dispatch` repository as `dispatch/m
 
 **Walkthrough reports:** All three delivered in the `Dispatch` repository — `STAGE12_MANAGER_FOUNDATION_WALKTHROUGH_REPORT_v1.md` (Pass 1), `STAGE12_MANAGER_M4_M6_WALKTHROUGH_REPORT_v1.md` (Pass 2), `STAGE12_MANAGER_M4_WALKTHROUGH_REPORT_v1.md` (Pass 3).
 
-**Stop/Go:** **Go, for the narrowed scope delivered (M2, M3, M4, M5-IFTA-half, M6).** M5's Archive half remains deferred, blocked on the not-yet-authorized Stage 6 Archive Review Queue build — the one concrete item left standing between Stage 12 and its full original Phase M2–M7 scope, aside from the still-undecided M7 policy-routing question.
+**Stop/Go:** **Go, for the narrowed scope delivered (M2, M3, M4, M5-IFTA-half, M6).** M5's Archive half was blocked on the not-yet-authorized Stage 6 Archive Review Queue build at the time of Pass 2 — **that prerequisite now exists** (Stage 6, approved and executed separately, see that stage's own entry above), but wiring `dispatch/manager/` to actually read it remains a distinct, not-yet-authorized follow-on task, not automatically included by Stage 6 shipping. The still-undecided M7 policy-routing question remains the only other open item.
 
 ---
 
