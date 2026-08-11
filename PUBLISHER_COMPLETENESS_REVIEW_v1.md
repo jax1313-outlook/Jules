@@ -116,9 +116,25 @@ Completeness Review from soft to hard blocker status is Mike's call, not this do
 
 ## 9. What This Review Does Not Do
 
-Does not fix the Mark Approved button. Does not build any of the six missing/partial contract
-concepts. Does not resolve the Publisher/Proposal-Writer split (Integration Bridge Mission's
-scope, unchanged). Does not touch `reconciliation/adapters/publisher_adapter.py`'s stale
-`is_approval_enforced` flag.
+Does not build any of the six missing/partial contract concepts. Does not resolve the
+Publisher/Proposal-Writer split (Integration Bridge Mission's scope, unchanged). Does not touch
+`reconciliation/adapters/publisher_adapter.py`'s stale `is_approval_enforced` flag.
+
+Mike decides.
+
+---
+
+## 10. Execution Status Update
+
+**Section 4's bug — FIXED**, on separate explicit go-ahead ("Fix the Mark Approved button bug
+now"), on `dispatch/canonical-reconciliation-integration` (commit `f5a42dd`). `base.html`'s
+`updatePublisherStatus()` now prompts for the approving identity and forwards `approved_by` when
+the target status is `APPROVED`, mirroring the existing `resolveConflict()` prompt pattern. A
+regression test (`test_mark_approved_button_sends_approved_by`) pins the fix at the rendered-page
+level, since the original bug was invisible to any test exercising the API directly. Full
+Dispatch suite re-verified green after the change.
+
+All other findings in this document (Sections 2, 3, 5, 6, 7, 8) remain open and unactioned —
+this status update covers only the one live bug, not the broader completeness gaps.
 
 Mike decides.
