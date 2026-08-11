@@ -34,7 +34,7 @@ Each package cites the specific `DISPATCH_REPO_RECONCILIATION_MATRIX_v1.md` rows
 | 10. Alert Governance Retrofit | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #16, #17 — deferred to a future Stage 10 *build* package | No — Claude-3 only, `DISPATCH_STAGE10_ALERT_GOVERNANCE_RECONCILIATION_v1.md` |
 | 11. MVP Integration | **Redefined as analysis-only; delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | #9, #14 — deferred; #9 identified as the critical Sandbox/Spine wiring gap | No — Claude-3 only, `DISPATCH_STAGE11_MVP_INTEGRATION_RECONCILIATION_v1.md` |
 | 12. Manager Reconciliation and Build | **Approved & executed — all seven phases (M1–M7) delivered** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | Not part of the original 22-item matrix — Manager has its own build matrix, see `DISPATCH_MANAGER_BUILDOUT_DESIGN_v1.md` §21; M7 delivered as a strictly read-only, no-consumer interface candidate — an actual policy engine remains a separate future mission requiring its own full design-and-approval cycle | Yes — `Dispatch` branches `stage12-manager-foundation`, `stage12-manager-archive-wiring`, `stage12-manager-m7-policy-hook` |
-| 13. Testing and Hold Review | Pending Stage 12 | none new — aggregates all above | No new code, full regression |
+| 13. Testing and Hold Review | **Approved & executed** (see `DISPATCH_BLUEPRINT_DECISION_LOG.md`) | none new — aggregates all above | Yes (test/CI infrastructure only) — `Dispatch` branch `stage13-testing-hold-review` |
 | 14. Production-Intent Promotion Decision | Pending Stage 13 | none | No |
 
 Jules items **#20** (sync utility role decision) and **#22** (Scanner API placeholder documentation) are not tied to a specific stage — they are standalone, Low/Future priority, and may proceed independently whenever convenient, per their own rows in the Jules Build Matrix.
@@ -399,6 +399,8 @@ All five passes built and delivered to the `Dispatch` repository as `dispatch/ma
 
 ## Stage 13 — Testing and Hold Review
 
+**Status: APPROVED & EXECUTED** — "Approve Stage 13 build" → `DISPATCH_STAGE13_TESTING_HOLD_REVIEW_BUILD_DESIGN_v1.md` → "Approve design" → implemented on `Dispatch` branch `stage13-testing-hold-review` (based on `stage12-manager-m7-policy-hook`, the confirmed full Stage 2–12 aggregate — verified by ancestry check that every prior stage branch is its ancestor; nothing has ever been merged into `main`, which sits 64 files / ~8,941 lines behind). See `STAGE13_TESTING_HOLD_REVIEW_WALKTHROUGH_REPORT_v1.md`, recorded in `DISPATCH_BLUEPRINT_DECISION_LOG.md`.
+
 **Depends on:** Stage 12 complete.
 
 **Purpose:** Run full regression across `cin_lite`, `dispatch`, and `portal`, plus every new test category introduced in Stages 4–12, together as one suite.
@@ -409,18 +411,23 @@ All five passes built and delivered to the `Dispatch` repository as `dispatch/ma
 
 **Jules Build Matrix items:** None new — this stage aggregates every prior stage's test requirements.
 
-**Findings:** Existing CI already enforces 90% coverage on `cin_lite` + `dispatch`; this stage extends that bar to the new `dispatch/security/` and `dispatch/spine/` modules rather than replacing the existing standard. Any Manager code built under a future Stage 12 build launch package extends the same bar.
+**Findings (superseding the pre-execution finding below):** The pre-execution assumption — "Existing CI already enforces 90% coverage on `cin_lite` + `dispatch`" — was checked and found wrong. CI's actual pytest invocation passed `--cov=cin_lite` only; `dispatch` (10,129 lines) and `portal` (5,500 lines, never even listed in `.coveragerc`) were never measured by the gate despite three build stages' worth of work assuming otherwise. Fixed as part of this stage's execution — see Execution below. Correctly measured, the codebase clears the bar at 95.22% aggregate.
 
-**Open Questions for Mike:**
-1. Should the 90% coverage threshold apply immediately to the new `dispatch/security/` and `dispatch/spine/` modules, or is a lower initial bar (e.g. 80%, tightened later) acceptable for the first Hold Review pass?
+**Open Questions for Mike (resolved by execution, see design doc §5 for full reasoning):**
+1. ~~Should the 90% coverage threshold apply immediately to the new `dispatch/security/` and `dispatch/spine/` modules, or is a lower initial bar acceptable?~~ Resolved: kept the existing **aggregate** bar (already met at 95.22%) rather than imposing a new per-module floor; eleven modules remain individually below 90% (three security-relevant), logged in the walkthrough report rather than silently closed.
+2. Whether to merge the Stage 2–12 aggregate branch into `main` remains **unresolved** — explicitly flagged, not defaulted, in the design document (Open Question 3). No stage has decided this yet.
 
-**Deliverables:** A full CI-green suite at the existing coverage bar or higher, run across every stage's changes together — not stage-by-stage in isolation.
+**Execution:** `jax1313-outlook/Dispatch` branch `stage13-testing-hold-review`, commit `0e2096a`. Two files touched, both test/CI infrastructure, zero product code: `.github/workflows/ci.yml` (added `--cov=dispatch --cov=portal` to the pytest invocation) and `.coveragerc` (added `portal` to `[run] source`). Full suite re-run under both the old and corrected commands to make the fix's effect directly visible: 2,489 tests, 0 failures either way; coverage report expanded from `cin_lite`-only (96.77%, misleadingly) to the full three-package aggregate (8,816 statements, 421 missed, 95.22%, correctly). Produced a full `DISPATCH_FINAL_BLUEPRINT_v1.md` §22 test-category inventory (16 categories → representative test files → Exercised/Partially exercised/Not yet applicable), confirming the previously-known Stage 7 gap (Driver and External Viewer boundary tests, categories #14–#15) is still open and not newly discovered, and that four cognitive-layer categories (#9–#12: Fact grounding, Publisher no-fabrication, Intelligence verification, Alert governance) are not yet applicable given current build scope rather than missing regressions.
 
-**Test plan:** Every test category listed across all Jules Build Matrix rows, run as one combined suite.
+**Deliverables:** A full CI-green suite at the existing coverage bar or higher, run across every stage's changes together — not stage-by-stage in isolation. Delivered: 2,489 tests, 0 failures, coverage gate now genuinely measuring all three packages.
 
-**Walkthrough report:** A full Mike walkthrough of every changed flow — the most comprehensive review point in the entire plan.
+**Test plan:** Every test category listed across all Jules Build Matrix rows, run as one combined suite. Delivered, plus the §22 doctrine-category inventory above.
 
-**Stop/Go:** Go only on Mike's explicit sign-off. This stage is itself the Hold gate, not a build stage.
+**Walkthrough report:** `STAGE13_TESTING_HOLD_REVIEW_WALKTHROUGH_REPORT_v1.md`. No live dev-server click-through was performed — no new user-facing behavior exists in this stage; every individual feature already received its own live walkthrough at build time (design document Open Question 4, resolved by using the recommended default).
+
+**Scope not built:** No new tests were written to close the eleven modules' individual sub-90% coverage gaps — logged, not silently fixed, per the approved design's Open Question 2. The branch-merge-to-`main` question (Open Question 3) remains open for a future explicit Mike decision.
+
+**Stop/Go:** **Go.** Mike's explicit sign-off closes this stage. Stage 14 (Production-Intent Promotion Decision) now has a real, current Hold Review to point to, including the still-open branch-merge question this stage did not resolve for it.
 
 ---
 
