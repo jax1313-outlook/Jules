@@ -211,3 +211,31 @@ building adapters, applying the governance-gap fixes) require a separate, explic
 this document ratifies the decision, it does not itself authorize execution.
 
 Mike decides.
+
+---
+
+## 10. Execution Status Update
+
+Stages 3-5 (items 1-3) executed on branch `dispatch/canonical-reconciliation-integration` in
+`jax1313-outlook/Dispatch`, each on separate explicit go-aheads:
+
+- **Stage 3** (create integration branch) — done.
+- **Stage 4** (build adapters) — done. `reconciliation/` package, read-only translation from
+  Dispatch's existing records to the canonical shared-object shapes. 29 tests.
+- **Stage 5, items 1-3** (Library candidate approval gate, Publisher approval enforcement,
+  Archive approval precondition) — done. Mike reviewed and finalized this scope under the name
+  **Approval Chain Safety Gate**. 10 new tests, 3 existing tests updated, full Dispatch suite
+  re-verified green.
+
+**Stage 5 items 4-5 spun out as separate future missions, not continued on this branch:**
+
+- Item 4 (Archive duplication resolution) → `DISPATCH_ARCHIVE_ARCHITECTURE_REVIEW_MISSION_v1.md`
+- Item 5 (Proposal writer under Publisher governance) → `DISPATCH_INTEGRATION_BRIDGE_MISSION_v1.md`
+
+Both are planning documents only — no implementation authorized yet. Stage 6 (object-flow
+wiring) and Stage 7 (Dispatch main merge consideration) remain unstarted, per this document's
+own sequencing. The `dispatch/canonical-reconciliation-integration` branch is finalized at the
+Approval Chain Safety Gate scope and is not to be expanded without a new, separate scoping
+decision.
+
+Mike decides.
