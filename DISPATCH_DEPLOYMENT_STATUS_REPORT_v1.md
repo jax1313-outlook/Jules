@@ -72,3 +72,41 @@ fabrication — this report exists specifically to not do that.
 
 Mike decides what happens next — merge, deployment target, and go-live are all separate,
 unmade decisions.
+
+---
+
+## Update: Live Deployment Confirmed
+
+The original report above was accurate given what was known at the time it was written (no VPS
+had been referenced anywhere in this session). It is now superseded on that one point by direct
+evidence — everything else in it remains accurate and unchanged.
+
+**Evidence**: a first-hand desktop screenshot, dated 8/11/2026 (taskbar clock), showing Microsoft
+Edge navigated to `https://l1truck.com/home`, rendering a page titled "L2-COS Portal." The page's
+navigation (Home, SAM, Dispatch, Publisher, Library, Archive, Intelligence, Conflict Notices,
+Settings) and its five home-page summary-card labels (Active Cards, Conflict Notices, Publisher
+Queue, Archived Records, Intelligence Records) match `portal/routes/pages.py` and
+`portal/templates/home.html` exactly, as read and edited in this session. This is a structural
+match to real application code, not a name coincidence.
+
+**Conclusion: yes, a live Dispatch instance ("L2-COS Portal") is genuinely deployed and reachable
+over HTTPS on a VPS at `l1truck.com`.** The "No VPS" line in the original report above is
+corrected by this evidence.
+
+**What remains true and unchanged**: which commit is running there is still unknown, and the
+strong likelihood is that it predates this session's work entirely.
+`dispatch/canonical-reconciliation-integration` — Stage 1, Stage 2, the Manager Preservation
+Decision, the presentation-layer consolidation panel, the Approval Chain Safety Gate — is still
+9 commits ahead of `main`, unmerged, as of this writing. Deployment here also appears to have
+happened via manual `scp` (per the deployment guides reviewed alongside this evidence), not a
+git-tracked pipeline, so the live instance's exact provenance can't be pinned to a commit hash
+without direct server access. The screenshot's own data is consistent with this: Publisher Queue
+reads 0, so there's no way to confirm from it whether the ninth `GovCon Proposal Draft Required`
+action type exists there, and this session's new "Attention Needed Across Departments" panel
+would not render regardless, since all three of its source queues are empty in the state shown.
+
+**Next real decision, now that live infrastructure is confirmed to exist**: whether and when to
+merge `dispatch/canonical-reconciliation-integration` into `main` and redeploy, so this session's
+work actually reaches the live instance. Not decided by this document.
+
+Mike decides.
