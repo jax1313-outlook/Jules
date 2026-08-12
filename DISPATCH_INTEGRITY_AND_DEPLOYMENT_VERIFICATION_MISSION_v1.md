@@ -181,6 +181,7 @@ repos, plus targeted reads):**
 | 2 | Live SAM.gov API key exposed in chat | High | Uploaded twice in plaintext this session (`.env`/`.env.example`, and again pasted directly). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub | Rotate at SAM.gov |
 | 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | **High — confirmed vulnerable, now RESOLVED on the live deployment (see update below)** | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). **Confirmed via direct check on the live VPS**: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` returned `0` — the variable was absent from `.env` entirely, so the running code was using the hardcoded public default. Anyone who knew that default (published in this open-source repo) could have forged a valid token and triggered a real decision action without the actual email ever being sent — bypassing that approval gate entirely. | Fixed — see update below |
 | 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Add `.env` to `.gitignore` if that repo is touched again |
+| 5 | `PORTAL_SECRET_KEY` defaults to a hardcoded, publicly-known string (`"dev-portal-key-change-in-production"`) if unset | High, if unresolved on the live deployment — same shape as the (now-fixed) Finding #3 | `portal/config.py:9,33,44-46`. This is Flask's session-signing `SECRET_KEY` — it signs every Portal session cookie. Only a `stderr` warning is emitted if unset (`check_secret_key()`), not a hard failure, so the app runs normally on the insecure default with no visible in-app indication. If unresolved on the live VPS, anyone who knows this public default could forge a valid Flask session cookie. **Directly relevant to the DISPATCH_PIN authentication build now approved (see Section 8)**: a PIN login system built on top of Flask sessions is only as strong as this key — if it's using the default, session forgery bypasses PIN login entirely regardless of how correct the PIN logic is. **Status on the live VPS unconfirmed** — same check pattern as Finding #3: `grep -c "PORTAL_SECRET_KEY" /opt/cin-hybrid/.env` | Mike to check directly; set a real value if unset, same remediation pattern as Finding #3 |
 
 **Clean, worth stating explicitly**: both repos' `.env.example` templates contain only comments
 and placeholders, no real values. No AWS-style keys, private-key blocks, or hardcoded passwords
@@ -396,3 +397,30 @@ mission found it: recorded, evidenced, and awaiting its own separate scope-and-a
 before anything changes.
 
 Mike decides what happens next, and in what order.
+
+---
+
+## 8. Post-Closure Updates: Track E Findings Acted On
+
+This mission stays closed (Section 7) — these are follow-up actions on findings it already
+recorded, not a reopening of any track.
+
+- **Finding #2 (SAM.gov key)**: Mike confirmed it's on a 90-day auto-rotation cycle, ~49 days
+  remaining — not a static credential. Still open; early manual rotation is Mike's call.
+- **Finding #3 (`DISPATCH_EMAIL_SECRET`)**: confirmed unset on the live VPS (`grep -c` returned
+  `0`), then fixed directly — a fresh value generated and written server-side in one step, never
+  displayed in chat, `l2cos-portal.service` restarted, fix verified without printing the real
+  value. **Closed as fixed.**
+- **Finding #5 (`PORTAL_SECRET_KEY`)**: new finding, same shape as #3 — added to the Track E table
+  above. Status on the live VPS not yet checked.
+- **Portal authentication decision (Finding #1)**: Mike reviewed the option set — an Nginx Basic
+  Auth stopgap, a full custom build, an IP/VPN restriction, or building the pre-existing
+  `DISPATCH_PIN` specification (`SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md`, found in the
+  `Jules-3`/`Claude-2` doctrine-review repos — a detailed, never-implemented PIN authentication
+  design: four roles, PIN lifecycle, session model, approval-event audit schema). **Decided: build
+  `DISPATCH_PIN` per the existing specification.** Scoped in
+  `PORTAL_AUTHENTICATION_DISPATCH_PIN_SCOPE_v1.md` — implementation requires that document's own
+  separate approval, per this program's standing practice. Finding #1 remains open until that
+  scope is approved and built.
+
+Mike decides.
