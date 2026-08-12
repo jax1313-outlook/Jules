@@ -180,7 +180,7 @@ repos, plus targeted reads):**
 | 1 | Portal has no authentication of any kind | **High — RESOLVED in code (see update below); live VPS still unprotected until redeployed** | Established earlier this session — no `/login` route, no `flask_login`, no `before_request` gate, no reverse-proxy `auth_basic` in any deployment script found | Fixed in code — see update below |
 | 2 | Live SAM.gov API key exposed in chat | High | Uploaded twice in plaintext this session (`.env`/`.env.example`, and again pasted directly). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub | Rotate at SAM.gov |
 | 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | **High — confirmed vulnerable, now RESOLVED on the live deployment (see update below)** | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). **Confirmed via direct check on the live VPS**: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` returned `0` — the variable was absent from `.env` entirely, so the running code was using the hardcoded public default. Anyone who knew that default (published in this open-source repo) could have forged a valid token and triggered a real decision action without the actual email ever being sent — bypassing that approval gate entirely. | Fixed — see update below |
-| 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Add `.env` to `.gitignore` if that repo is touched again |
+| 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) — **RESOLVED (see update below)** | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Fixed — see update below |
 | 5 | `PORTAL_SECRET_KEY` defaults to a hardcoded, publicly-known string (`"dev-portal-key-change-in-production"`) if unset | High, if unresolved on the live deployment — same shape as the (now-fixed) Finding #3 | `portal/config.py:9,33,44-46`. This is Flask's session-signing `SECRET_KEY` — it signs every Portal session cookie. Only a `stderr` warning is emitted if unset (`check_secret_key()`), not a hard failure, so the app runs normally on the insecure default with no visible in-app indication. If unresolved on the live VPS, anyone who knows this public default could forge a valid Flask session cookie. **Directly relevant to the DISPATCH_PIN authentication build now approved (see Section 8)**: a PIN login system built on top of Flask sessions is only as strong as this key — if it's using the default, session forgery bypasses PIN login entirely regardless of how correct the PIN logic is. **Status on the live VPS unconfirmed** — same check pattern as Finding #3: `grep -c "PORTAL_SECRET_KEY" /opt/cin-hybrid/.env` | Mike to check directly; set a real value if unset, same remediation pattern as Finding #3 |
 
 **Clean, worth stating explicitly**: both repos' `.env.example` templates contain only comments
@@ -431,5 +431,21 @@ recorded, not a reopening of any track.
   `l1truck.com` until a redeploy happens, which is a separate, not-yet-authorized action. Track E
   Finding #5 (`PORTAL_SECRET_KEY` unconfirmed on the live VPS) should be checked before any such
   redeploy, per the scope document's own prerequisite note.
+
+- **Finding #4 (`dispatch-old`'s `.gitignore`) — CLOSED, fixed**: `.env` added to the ignore list
+  directly, `dispatch-old:main` commit `be6c593` (no branch protection on that repo, unlike
+  `Dispatch` — direct push, no PR needed).
+
+**Remaining Track E status as of this update**, all three genuinely different in kind, not a
+single work item:
+- **Finding #2 (SAM.gov key)**: fully investigated already — nothing left to check or run.
+  Purely a pending decision: early manual rotation vs. letting the existing 90-day cycle (~49
+  days remaining) run its course. Mike's call alone.
+- **Finding #5 (`PORTAL_SECRET_KEY`)**: fully diagnosed in code (same hardcoded-default shape as
+  the now-fixed Finding #3); only the live-VPS status is unconfirmed, and only Mike can check it
+  — this session has no VPS access. Command, unchanged from when it was first given:
+  `grep -c "PORTAL_SECRET_KEY" /opt/cin-hybrid/.env`
+- Both are correctly left open — neither is blocked on further investigation, only on an action
+  only Mike can take.
 
 Mike decides.
