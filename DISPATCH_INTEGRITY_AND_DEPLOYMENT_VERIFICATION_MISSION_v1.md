@@ -1,7 +1,8 @@
 # DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1
 
 Program: Dispatch
-Status: **Future work package — planning only. Scoped this turn; no track has started.**
+Status: **All six tracks (A-F) closed.** Findings recorded per track; no code changes made under
+this mission except where a track's own scope explicitly named one (Track F made none).
 Origin: Direct request ("Scope this as a formal review mission"), following the `dispatch-old`
 code-lineage discovery and the confirmed finding that the Portal has no authentication. Framed
 by Mike as establishing "a new starting point from where I am now" before any further deployment
@@ -188,13 +189,74 @@ found anywhere in either repo's current tree or full commit history via broad pa
 
 No fixes applied — findings and severities only, per this track's own scope.
 
-### Track F — Doctrine Compliance Audit Against the Primary Constitution
+### Track F — Doctrine Compliance Audit Against the Primary Constitution — **CLOSED**
 **Purpose**: `dispatch-old`'s `CONSTITUTION.md` is the actual primary-source governing document —
 read directly for the first time this session, rather than operated on via secondhand paraphrase
 the way it was for everything prior. Run a proper rule-by-rule pass: does `jax1313-outlook/
 Dispatch`'s real implementation hold up against the 17 Building Rules and Article III's
 department table?
 **Produces**: a rule-by-rule compliance table with evidence, not assumption, for each rule.
+
+**What was actually done**: read `dispatch-old/CONSTITUTION.md` in full (Article 0 through
+Article XII, all 17 Building Rules, the Article III department table). Every verdict below cites
+either evidence already established this session (the three Completeness Reviews, the Manager
+Preservation Decision, Tracks D and E) or a fresh check run for this track specifically — none is
+asserted from memory or paraphrase.
+
+**Fresh checks run for this track**:
+1. `ls docs/` in `jax1313-outlook/Dispatch` → `CANONICAL_RECONCILIATION_INTEGRATION.md`,
+   `MANAGER.md` — confirms process/governance documentation exists inside Dispatch itself, not
+   only in the Claude-3 planning repo (relevant to Rules 5 and 6).
+2. `grep -rln "class Automation\|def automation\|Automation department" --include="*.py" .` →
+   **no matches**. Confirms no dedicated "Automation" module or class exists anywhere, relevant to
+   Article III's ninth department row.
+
+**Findings — the 17 Building Rules:**
+
+| # | Rule | Verdict | Evidence |
+|---|---|---|---|
+| 1 | Human Final Authority | **Compliant** | Every implementation this session (Stage 1, Stage 2, the presentation-layer panel, the merge to `main`) proceeded only after Mike's own explicit approval instruction, recorded turn-by-turn and in each scope document's own status line. |
+| 2 | AI Decides Nothing | **Compliant** | This session's own scope-then-approve pattern directly enacts this rule. In code, the `RESERVED_SYSTEM_IDENTITIES` gate (Library/Publisher/Archive) exists specifically to stop an AI/automation identity from self-approving — verified in the Publisher and Library Completeness Reviews. |
+| 3 | Software Automates Administration | **Partial** | Stage 1/2's hooks (`promote_to_candidate`, `_trigger_publisher_on_approval`, `_trigger_govcon_draft`) are exactly the approved administrative automation this rule describes, but Track D found `promote_to_candidate()` has zero HTTP callers — real automation a human cannot yet trigger through the running app. |
+| 4 | No Spec, No Prompt. No Prompt, No Build. No Approval, No Implementation. | **Compliant** | The most strongly evidenced rule this session — every implementation (Stage 1, Stage 2, presentation-layer, `docs/MANAGER.md`) has a named, dated scope document with an explicit approval step preceding any code, no exceptions; Manager was directly refused implementation for lacking exactly this (`MANAGER.md` Section 3). |
+| 5 | Process Before Tool | **Compliant** | Each scope document (`STAGE_1_...`, `STAGE_2_...`, `PRESENTATION_LAYER_...`) defines the business process before any tool/code decision; `docs/CANONICAL_RECONCILIATION_INTEGRATION.md` and `docs/MANAGER.md` exist inside Dispatch itself as the process record (fresh check #1, above). |
+| 6 | Governance Before Automation | **Partial** | Where automation exists (Publisher/Library approval gates) it has purpose, trigger, and accountability (`RESERVED_SYSTEM_IDENTITIES`). The Intelligence department (all 6 contract concepts absent, per its Completeness Review) has neither automation nor governance yet — unproven there, not violated. |
+| 7 | Roles Before Agents | **Compliant** | Publisher/Library/Intelligence/Archive remain distinct, bounded models with distinct ownership per the three Completeness Reviews; no department performs another's job — Manager stays dormant rather than absorbing routing work from elsewhere. |
+| 8 | Reuse Before Create | **Compliant** | Stage 2 explicitly reused `cin_lite.pipeline.resolve_decision()` instead of a new GovCon decision path; `MANAGER.md` Section 4 reasons explicitly from reuse-first principles (compose over Conflict Notices, don't subsume it); the presentation-layer panel composed existing data rather than creating new storage. |
+| 9 | Deterministic First | **Partial / not fully verifiable this session** | The `RESERVED_SYSTEM_IDENTITIES` check and the Publisher approval-gate's real 400 response (Track D, Stage 2 step 4) are genuine deterministic gates, verified live. Article VI's freight-scoring/radius-band logic was not reviewed by any track this session — marked unknown, not assumed either way. |
+| 10 | No Architecture Drift | **Compliant, strongly evidenced** | The Manager Preservation Decision (`MANAGER.md` Section 8) is the clearest instance: Mike explicitly refused to let a discovered `MANAGER_CONSTITUTION_v1.md` in `Hold` reopen the dormant-Manager decision. The `Hold`/`Test-Grounds`/five-repo ruling (Section 6.3, this document) applies the same principle at the repository level. |
+| 11 | No Fabrication | **Compliant in this session's own conduct; one open question on live data** | This session consistently marked unverified claims as unknown rather than asserting them (the port-8080 retraction, the `conflicts.json` growth flagged "unconfirmed," Tracks A/B relying only on relayed real command output). Open, not resolved: Track B found Sandbox data is real SAM.gov data only when `CIN_LITE_SAM_API_KEY` is set — whether the live UI clearly labels an unset-key state as sample/placeholder data, versus presenting it as live, was not directly verified. |
+| 12 | Library Stores Approved Reusable Knowledge | **Partial** | Library Completeness Review: 4/6 contract concepts absent, no `library.current(object_code)` lookup, no versioning/supersession. The core approve/reject lifecycle (`review_candidate()`, identity-gated) does work — the gap is data richness, not an ungated write path. |
+| 13 | Archive Stores Completed History | **Compliant, with a known nuance** | `reconciliation/` adapters are confirmed read-only (Stage 4); the Archive Dead Section Validation Mission established the current split as deliberate design, "split by design, not drift," not an unrecorded gap. |
+| 14 | Publisher Produces From Approved Inputs Only | **Partial, one violation found and fixed** | Publisher Completeness Review: 4/6 contract concepts absent. More directly on-rule: the live "Mark Approved" button bug (not sending `approved_by`) was a real instance of the UI permitting an approval transition without a genuine human identity attached — found and fixed this session (commit `f5a42dd`); Track D confirmed it now correctly blocks (real HTTP 400). |
+| 15 | Portal Reduces Cognitive Load | **Partial** | The presentation-layer panel is a direct, Track-D-verified implementation of this rule. Set against it: Track E Finding 1 (no Portal authentication at all) is a direct violation of Article X's own explicit stop-trigger ("expose Portal publicly without approved authentication") — undermining the precondition for a cockpit meant to be trusted. |
+| 16 | Capture Once, Use Many / Experience Becomes An Asset | **Not implemented — the most significant gap tied to any single rule** | Operational Intelligence, the department this rule most directly names, has zero implementation (Intelligence Completeness Review: all 6 contract concepts absent). No mechanism exists for "the tenth trip" to consume anything "the first trip" captured. |
+| 17 | Protect Position And HOS-Aware Operations | **Not assessed this session** | No track reviewed `dispatch/`'s freight-load/HOS/radius-band logic. Marked unknown rather than assumed compliant. |
+
+**Summary**: 9 of 17 rules compliant on direct evidence, 6 partial (real gaps or unproven areas,
+not active violations), 1 outright not-yet-implemented (Rule 16), 1 not assessed this session
+(Rule 17). Exactly one concrete in-code rule violation was found this session at all — the
+Publisher approval button bypassing `approved_by` (Rule 14) — and it was found and fixed before
+this audit ran. The two most consequential open items (Article X's authentication stop-trigger,
+and Rule 16/Operational Intelligence's total absence) are not new discoveries; this track's
+contribution is tying both explicitly to the primary Constitution's own text rather than leaving
+them as standalone review findings.
+
+**Findings — Article III department table:**
+
+| Department | Constitution's Passed Product | Current State | Evidence |
+|---|---|---|---|
+| Acquisition | Raw source record, source link, acquisition log | Real, exists | `cin_lite`'s acquisition module, carried from `dispatch-old` into `jax1313-outlook/Dispatch`; Track B confirmed the local L1-COS tool performs real SAM.gov sweeps. |
+| Processing / Rules | Rule JSON, score, flags, normalized record | Real, exists — not independently re-verified this session | `cin_lite/processing`, `cin_lite/rules` present in the repo structure; no track this session re-tested its scoring/flagging logic directly. |
+| Manager / Control | Decision request, routing task, Conflict Notice | **Deliberately dormant** | `MANAGER.md` Sections 2-3; zero Manager code confirmed twice (Manager Orchestration Review Phase 1, and this track's fresh grep finding no Automation/Manager module). The routing/Conflict-Notice function is currently covered ad hoc by `portal/models/conflict.py`, not by a Manager/Control department. |
+| Publisher | Brief, draft, packet, inquiry, checklist, document package | Real, partial | Publisher Completeness Review: 4/6 concepts absent; live approval-gate bug found and fixed. |
+| Library | Approved fact, packet component, current asset | Real, partial | Library Completeness Review: 4/6 concepts absent, no review UI. |
+| Archive | Retrievable audit bundle | Real, split by design | `reconciliation/` adapters, confirmed read-only and structurally incapable of writes. |
+| Portal / Presentation | Operator-facing display card | Real, functioning, unauthenticated | Track D confirmed the Attention Needed panel renders correctly and filters correctly; Track E Finding 1: no authentication of any kind. |
+| Operational Intelligence | Reusable intelligence record | **Zero implementation** | Intelligence Completeness Review: all 6 contract concepts absent — the most severe finding of any department reviewed this session. |
+| Automation | Execution log, completed workflow | **No distinct department exists** | Fresh check this track: no `class Automation`, `def automation`, or "Automation department" match anywhere in the tree. Automation logic exists only ad hoc, embedded inside other departments' models (Stage 1/2's `_trigger_*` hooks inside Library/Publisher) — there is no dedicated Automation department with its own purpose/input/output boundary as Article III names it. |
+
+No code changes made in this track — findings and citations only, per this track's own scope.
 
 ## 4. What This Mission Is Not
 
