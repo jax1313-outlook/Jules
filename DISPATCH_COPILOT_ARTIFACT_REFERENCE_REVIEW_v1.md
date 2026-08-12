@@ -86,11 +86,23 @@ is in the reference data it embeds as text, not in any live function.
 
 **New item surfaced, not previously checked by any track**: the file's embedded terminal log and
 a "Configure Claude API Key" button both reference an intended `CLAUDE_API_KEY` variable in
-`/opt/cin-hybrid/.env` on the live VPS. No track this session checked whether that variable is
-set, used anywhere in the running code, or relevant at all — it's a new open question, not a
-confirmed finding. Same relay-a-command pattern as the `DISPATCH_EMAIL_SECRET` check Track E
-already proposed would settle it if pursued:
-`grep -c "CLAUDE_API_KEY" /opt/cin-hybrid/.env`
+`/opt/cin-hybrid/.env` on the live VPS.
+
+**Resolved, follow-up finding — a real naming mismatch, not a security issue**: checked directly
+in `jax1313-outlook/Dispatch`'s real code first (`cin_lite/agents/extractor.py`,
+`proposal_writer.py`, `router.py`, `summarizer.py`, `receipt_vision.py`, `portal/routes/pages.py`)
+— every one of them reads `ANTHROPIC_API_KEY`, never `CLAUDE_API_KEY`. The mockup's button used a
+different variable name than the real code recognizes. Confirmed on the live VPS:
+`grep -c "^CLAUDE_API_KEY=" /opt/cin-hybrid/.env` → `1` (set); `grep -c "^ANTHROPIC_API_KEY="
+/opt/cin-hybrid/.env` → `0` (not set). **Someone followed the mockup's instructions and set a key
+under the wrong name — the Claude-powered agents (extractor, proposal writer, router, summarizer,
+receipt vision) have been running on deterministic fallback only this whole time, with no visible
+in-app indicator that anything was misconfigured.** Not fixed here — Mike's call whether to enable
+real Claude-agent behavior on the live VPS, since that has real cost/behavior implications beyond
+a simple bugfix. If wanted, the fix is a rename, not a new value:
+`echo "ANTHROPIC_API_KEY=$(grep '^CLAUDE_API_KEY=' /opt/cin-hybrid/.env | cut -d= -f2-)" >>
+/opt/cin-hybrid/.env` (run entirely on the server; nothing sensitive touches chat), then restart
+`l2cos-portal.service`.
 
 **Status: check requested of Mike this session (relayed command sent). Output not yet received —
 still open as of this document's last update.**
