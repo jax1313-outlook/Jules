@@ -51,13 +51,41 @@ Manager Preservation Decision, the presentation-layer consolidation panel, and P
 merged today. None of that is reaching `l1truck.com`. Redeploying (`git pull` + service restart
 on the VPS) is a separate, not-yet-authorized action.
 
-### Track B — Live Data Reality Check
+### Track B — Live Data Reality Check — **CLOSED**
 **Purpose**: confirm what's actually live in the deployed instance versus static/seed content.
 Mike already confirmed the live instance doesn't scan SAM.gov live the way the local L1-COS
 prototype did — this track pins down the rest: which subsystems (freight/dispatch entry,
 Publisher queue, Library, Archive) are live-fed versus placeholder data in that specific
 deployment.
 **Produces**: a clear live-vs-static list for the deployed instance specifically.
+
+**Finding, verified live on the VPS by Mike** (commands tailored against the exact code at
+commit `a753252`, checked first — `portal/models/__init__.py::get_data_dir()`,
+`portal/helpers.py::load_and_process_sam()`, `cin_lite/acquisition.py`'s
+`CIN_LITE_SAM_API_KEY` fallback):
+
+- **SAM.gov: not live.** `grep -c "CIN_LITE_SAM_API_KEY" /opt/cin-hybrid/.env` → `0`. SAM cards
+  shown are `cin_lite`'s bundled `sample_data/`, not real acquisitions.
+- **Only two data files exist on disk**, in `/opt/cin-hybrid/portal/data/`: `conflicts.json` and
+  `sandbox.json`. `archive.json`, `intelligence.json`, `library.json`, `publisher_queue.json` are
+  entirely absent — not empty, never created. Archive, Intelligence, Library, and Publisher have
+  never had a single record written on this deployment. Matches the screenshot's "0 Publisher
+  Queue / 0 Archived Records / 0 Intelligence Records" exactly, confirmed at the file-existence
+  level, not just the displayed count.
+- **`sandbox.json`: real but frozen.** 4 entries, matching the snapshot Mike uploaded earlier
+  exactly (same 2 SAM opportunities, 2 Dispatch loads). Last modified Aug 9 — no new cards since.
+- **`conflicts.json`: 95 records, up from 5 in the earlier-uploaded snapshot — a likely bug, not
+  organic growth.** Sandbox stayed flat at 4 entries the entire time; conflict count grew ~19x
+  against that same tiny set. The original 5 all traced to one load
+  (`SBX-DISPATCH-LOAD-20260729-002`, the Flatbed equipment mismatch). Consistent with a
+  non-idempotent conflict-check re-firing and re-creating duplicate notices on repeated runs
+  rather than skipping when an equivalent one is already open — flagged as a real anomaly worth
+  checking directly, not confirmed as root cause without reading the actual 95 records.
+
+**Conclusion**: the live deployment has genuine, if narrow, real usage (Sandbox cards, Conflict
+Notices) — it is not purely static placeholder data — but four of seven departments have never
+been touched at all, SAM.gov is confirmed not live, and the Conflict Notices count shows signs
+of a duplication bug rather than 95 distinct real issues. No fix applied — investigation only.
 
 ## 3. Tracks Claude Can Execute Directly (source-code and local-run based)
 
