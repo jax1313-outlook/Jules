@@ -125,4 +125,14 @@ change the display template to flag unreviewed content. Does not itself close
 `INTELLIGENCE_APPROVAL_CHAIN_REVIEW_v1` — provides the evidence that mission needed, closure is
 Mike's call.
 
+## 11. Update: Section 5's Confirmed Risk Fixed
+
+`OPERATIONAL_INTELLIGENCE_VERIFICATION_LABELING_SCOPE_v1.md` (Claude-3 repo) scoped and
+implemented exactly what Section 5 recommended — a lightweight `verification_status` labeling
+field and display badge, no promotion/approval gate — plus Section 4's "must always archive"
+gap, both merged to `jax1313-outlook/Dispatch:main` (PR #85, commit `5274d47`). The other five
+contract concepts (Operational Consideration, Special Requirement, Publisher Requirement's
+producing side, Library Candidate's originating side, Manager Decision Support Note) remain
+exactly as this review found them — absent, not silently addressed.
+
 Mike decides.

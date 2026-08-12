@@ -1,7 +1,11 @@
 # OPERATIONAL_INTELLIGENCE_VERIFICATION_LABELING_SCOPE_v1
 
 Program: Dispatch
-Status: **Scope only. Not yet approved for implementation.**
+Status: **IMPLEMENTED.** Scope approved and executed on
+`dispatch/operational-intelligence-verification-labeling`, merged to `main` via PR #85 (squash
+commit `5274d47`), both Parts A and B, exactly as scoped below. Full 67-file suite verified clean
+before pushing (lesson carried over from the DISPATCH_PIN PR's CI regression); real HTTP smoke
+test confirmed default/update/rejection/badge/archive behavior against a live local server.
 Origin: `INTELLIGENCE_COMPLETENESS_REVIEW_v1.md` found all six Intelligence contract concepts
 absent from `jax1313-outlook/Dispatch`'s real code — the most severe gap of any department
 reviewed this session. `DISPATCH_TRI_DEPARTMENT_MATRIX_BUILD_RECONCILIATION_v1.md` then found a
