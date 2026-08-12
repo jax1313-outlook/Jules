@@ -98,7 +98,7 @@ into one map, so future sessions don't have to reconstruct this from scattered u
 hierarchy, and a cross-reference to Tracks A/B's live-verification findings, all cited to
 evidence gathered and verified this session.
 
-### Track D — End-to-End Functional Verification
+### Track D — End-to-End Functional Verification — **CLOSED**
 **Purpose**: this session's tri-department work (Stage 1, Stage 2, the Approval Chain Safety
 Gate, the presentation-layer panel) has only ever been verified by `pytest` — never by actually
 running the Flask app and clicking through it as a user would. Tests prove the code is correct;
@@ -111,6 +111,56 @@ Required` action → generate a draft → confirm the approval gate genuinely bl
 Needed Across Departments" panel actually renders real cross-department items on `/home`.
 **Produces**: a report of what was actually run and observed (real HTTP responses / rendered
 HTML), distinct from and in addition to the existing test suite's green result.
+
+**What was actually done**: `main` (commit `502adf2`, post PR #82/#83) run locally as a real
+Flask dev server on `127.0.0.1:5099`, in an isolated scratch data directory. Every step below is
+a real `curl` HTTP request against that live server, not a `pytest` assertion.
+
+**Finding 1 — a real gap, found immediately**: `intelligence.promote_to_candidate()` has **zero
+callers anywhere in `portal/routes/`**. There is no HTTP route for it. A human using the real,
+running app has no way to trigger Stage 1's Intelligence→Library promotion at all — it's only
+reachable via direct Python call, which is exactly what the test suite does and exactly what a
+real user cannot do. Confirmed via `grep`, then worked around for the rest of this walkthrough
+by invoking it directly against the same live data store (clearly separated from the real HTTP
+steps below).
+
+**Stage 1 chain — fully confirmed working, end to end, via real HTTP:**
+1. `POST /api/intelligence/add` → real `INT-BRO-0001` record created; confirmed rendered on the
+   real `/intelligence` page.
+2. `promote_to_candidate()` (direct call — see Finding 1) → `LIB-BRO-0001`, `pending_review`.
+3. Checked `/library`'s real rendered HTML for a review/approve control — **confirms** the
+   earlier Library Completeness Review finding: none exists. The only "review"/"approve" text on
+   the page is unrelated static prose and the *Publisher* page's shared JS (present because
+   `base.html` is included everywhere) — not a Library-specific control.
+4. `POST /api/library/review` (the only path, since no UI one exists) → `LIB-BRO-0001` approved.
+5. Confirmed `PUB-0001` ("Broker Packet Required") now genuinely appears on the real, rendered
+   `/publisher` page with the correct trigger reason.
+
+**Stage 2 chain — fully confirmed working, end to end, via real HTTP, including real archived
+output:**
+1. Staged a real `cin_lite` pending decision using the actual `acquisition`/`processing`
+   pipeline (not test fixtures) against `cin_lite/sample_data/sample_contract.json`.
+2. `POST /api/publisher/create` with `contract_id` → `PUB-0002` created, sandbox lookup correctly
+   skipped (`GOVCON-CIN-TRACKD-VERIFY` marker).
+3. `POST /api/publisher/update` (`PENDING→DRAFT`) → real `proposal_reference_id`
+   (`PROP-20260812-66DF1F97`) returned. **Verified on disk**, not just in the response: the full
+   `cin_lite` archive tree was actually written — `Raw/`, `Processed/`, `Intelligence/`,
+   `Summaries/`, `Routing/`, `Proposals/` (with `.sha256` hash sidecars), and an `Outbox/` kickoff
+   email. Read the actual drafted `.md` outline — real generated content, not a stub.
+4. `POST /api/publisher/update` (`APPROVED`, no `approved_by`) → **real 400**, correct error,
+   gate genuinely blocks it through the actual HTTP path, not just in a unit test.
+5. `POST /api/publisher/update` (`APPROVED`, `approved_by: "Mike Zachary"`) → succeeds.
+
+**Attention Needed panel — confirmed working correctly, including correct exclusion logic:**
+`/home`'s real rendered HTML showed exactly one item — `PUB-0001` (still `PENDING`), with its
+real trigger note. `PUB-0002` (now `APPROVED`) was correctly **excluded** — the panel only shows
+items still awaiting action. Not just "renders something," genuinely correct filtering behavior
+observed live.
+
+**Conclusion**: every piece of this session's tri-department work that has an HTTP entry point
+is confirmed genuinely functional end to end, not just passing isolated tests — with one real,
+concrete gap found: Stage 1's promotion step has no UI/API path at all. No fix applied here;
+Track D is verification only.
 
 ### Track E — Security Posture Review
 **Purpose**: consolidate the two concrete findings already surfaced this session — no
