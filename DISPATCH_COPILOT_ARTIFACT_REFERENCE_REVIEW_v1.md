@@ -19,11 +19,17 @@ program — corporate formation/bylaws documents, VA disability and Medicare cla
 SDVOSB insurance-carrier business line, FEMA capability statements, real estate parcel scans, and
 merchandise design. Not re-examined here; flagged for the record only.
 
-**Four HTML artifacts uploaded and read in full or by targeted search**:
+**Four HTML artifacts uploaded and read in full or by targeted search** (first batch):
 1. `CIN_Contract_Intelligence_Network.html`
 2. `L1_Transport_Planning_Intelligence_Dashboard.html`
 3. `Hybrid_AI_Manager_Dashboard.html`
 4. `L1_Transport_l1truck_Website.html`
+
+**Second batch, five files uploaded**: three (`L1_Transport_l1truck_Website.html`,
+`CIN_Contract_Intelligence_Network.html`, `Hybrid_AI_Manager_Dashboard.html`) confirmed
+byte-identical to the first batch via `md5sum` — not re-reviewed, findings unchanged. Two new
+files reviewed: `Level5_Autonomous_Intelligence_Master_Report_1.html`,
+`Email_Sweep_Command_Center.html`. See Section 3.5 and 3.6.
 
 ## 2. Method
 
@@ -86,13 +92,46 @@ confirmed finding. Same relay-a-command pattern as the `DISPATCH_EMAIL_SECRET` c
 already proposed would settle it if pursued:
 `grep -c "CLAUDE_API_KEY" /opt/cin-hybrid/.env`
 
+**Status: check requested of Mike this session (relayed command sent). Output not yet received —
+still open as of this document's last update.**
+
+### 3.5 `Level 5 Autonomous Intelligence System — Master Report`
+Reviewed on title alone in the earlier CSV triage as high-priority, given the "Intelligence"
+name. Direct read finds **zero mentions** anywhere in the file of Level 1 Transport, Dispatch,
+`cin_lite`, `l1truck`, SAM.gov, freight, or broker — confirmed by targeted search, not assumed.
+This is a generic report on building a local, self-hosted LLM hardware stack: architecture layers,
+GPU/VRAM hardware tiers, memory requirements, cost breakdowns, and a snapshot of recommended
+open-source models as of June 2026.
+**Relevance**: none to this program's actual gaps. A title-level false positive — flagged
+explicitly as ruled out, not silently dropped, so it isn't mistakenly re-flagged as high-priority
+again later. Retains general value only if a future, separate decision is ever made about running
+AI infrastructure locally rather than via API — unrelated to anything scoped in Dispatch today.
+
+### 3.6 `Email Sweep Command Center`
+A concept inbox-automation console built around the real account addresses `jax1313@outlook.com`
+and `admin@l1truck.com` — sweep/forward/trash rules, duplicate-action prevention, Outlook token
+refresh handling, a whitelist system. Demo activity feed references DAT Freight, Uber Freight,
+and Samsara vehicle-alert emails — plausible, freight-relevant, but still fabricated demo content,
+not real data (no backend, confirmed by the same connectivity check as every other file here).
+**One item worth surfacing, explicitly unconfirmed**: the hardcoded demo activity feed includes a
+GitHub notification referencing a repository `l1truck/fleet-mgmt` ("PR #247 merged: Fix GPS
+tracking module"). This repo is not among any found or accessible to this session (`Dispatch`,
+`dispatch-old`, `Hold`, `Test-Grounds`, `Jules`/`Jules-2`/`Jules-3`, `Claude`/`Claude-2`). Because
+it appears inside the same fabricated demo dataset as this file's other placeholder activity
+entries, it is **not** treated as confirmed to exist — noted only in case it means something to
+Mike, per the No-Fabrication rule against asserting an unverified claim as fact.
+**Relevance**: adjacent to, but distinct from, Track E's `DISPATCH_EMAIL_SECRET` finding — that
+finding concerns `cin_lite`'s outbound HMAC-signed decision-action email links, not inbox triage.
+This concept addresses a different problem (managing what arrives in the inbox) than the one
+already flagged (securing what Dispatch sends out).
+
 ## 4. Ruling: Reference Material, Not Authoritative
 
 Consistent with the standing ruling already applied to `Hold` and the five doctrine-review repos
-(`DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1.md`, Section 6.3): these four
-artifacts are candidate design material, not automatically authoritative over anything already
-built in `jax1313-outlook/Dispatch`. None of them contain working code. None of them are
-authorized for use as-is. If any of them are to inform an actual change to Portal or to
+(`DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1.md`, Section 6.3): all artifacts
+reviewed in this document are candidate design material, not automatically authoritative over
+anything already built in `jax1313-outlook/Dispatch`. None of them contain working code. None of
+them are authorized for use as-is. If any of them are to inform an actual change to Portal or to
 Operational Intelligence, that requires its own separate scope document and go-ahead, per this
 program's standing practice — not adoption by inclusion in this note.
 
