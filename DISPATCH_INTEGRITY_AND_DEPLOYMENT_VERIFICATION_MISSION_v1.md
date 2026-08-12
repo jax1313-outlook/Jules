@@ -177,7 +177,7 @@ repos, plus targeted reads):**
 
 | # | Finding | Severity | Evidence | Recommended action |
 |---|---|---|---|---|
-| 1 | Portal has no authentication of any kind | High | Established earlier this session — no `/login` route, no `flask_login`, no `before_request` gate, no reverse-proxy `auth_basic` in any deployment script found | Mike's call — decide an approach, then scope as its own mission |
+| 1 | Portal has no authentication of any kind | **High — RESOLVED in code (see update below); live VPS still unprotected until redeployed** | Established earlier this session — no `/login` route, no `flask_login`, no `before_request` gate, no reverse-proxy `auth_basic` in any deployment script found | Fixed in code — see update below |
 | 2 | Live SAM.gov API key exposed in chat | High | Uploaded twice in plaintext this session (`.env`/`.env.example`, and again pasted directly). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub | Rotate at SAM.gov |
 | 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | **High — confirmed vulnerable, now RESOLVED on the live deployment (see update below)** | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). **Confirmed via direct check on the live VPS**: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` returned `0` — the variable was absent from `.env` entirely, so the running code was using the hardcoded public default. Anyone who knew that default (published in this open-source repo) could have forged a valid token and triggered a real decision action without the actual email ever being sent — bypassing that approval gate entirely. | Fixed — see update below |
 | 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Add `.env` to `.gitignore` if that repo is touched again |
@@ -413,14 +413,23 @@ recorded, not a reopening of any track.
   value. **Closed as fixed.**
 - **Finding #5 (`PORTAL_SECRET_KEY`)**: new finding, same shape as #3 — added to the Track E table
   above. Status on the live VPS not yet checked.
-- **Portal authentication decision (Finding #1)**: Mike reviewed the option set — an Nginx Basic
-  Auth stopgap, a full custom build, an IP/VPN restriction, or building the pre-existing
-  `DISPATCH_PIN` specification (`SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md`, found in the
-  `Jules-3`/`Claude-2` doctrine-review repos — a detailed, never-implemented PIN authentication
-  design: four roles, PIN lifecycle, session model, approval-event audit schema). **Decided: build
-  `DISPATCH_PIN` per the existing specification.** Scoped in
-  `PORTAL_AUTHENTICATION_DISPATCH_PIN_SCOPE_v1.md` — implementation requires that document's own
-  separate approval, per this program's standing practice. Finding #1 remains open until that
-  scope is approved and built.
+- **Portal authentication decision (Finding #1) — CLOSED, fixed**: Mike reviewed the option set —
+  an Nginx Basic Auth stopgap, a full custom build, an IP/VPN restriction, or building the
+  pre-existing `DISPATCH_PIN` specification (`SECURITY_AND_AUTHENTICATION_SPECIFICATION_v1.md`,
+  found in the `Jules-3`/`Claude-2` doctrine-review repos — a detailed, never-implemented PIN
+  authentication design: four roles, PIN lifecycle, session model, approval-event audit schema).
+  **Decided: build `DISPATCH_PIN` per the existing specification.** Scoped in
+  `PORTAL_AUTHENTICATION_DISPATCH_PIN_SCOPE_v1.md`, approved, and implemented: Authority-role-only
+  minimal build (`portal/models/identity.py`, hashed PINs, 5-attempt/15-minute lockout, a
+  bootstrap CLI, `/login`/`/logout`, a fail-closed `before_request` gate), merged to
+  `jax1313-outlook/Dispatch:main` via PR #84 (squash commit `fcad6145`). A CI regression found and
+  fixed before merge is recorded in the scope document's own execution note. **Portal in the
+  codebase is no longer unauthenticated — Finding #1 is closed.**
+
+  **Important scope boundary, not yet closed by this fix**: this changes the *code*, not the live
+  VPS. The VPS remains frozen at commit `a753252` (Track A) — this login gate does not protect
+  `l1truck.com` until a redeploy happens, which is a separate, not-yet-authorized action. Track E
+  Finding #5 (`PORTAL_SECRET_KEY` unconfirmed on the live VPS) should be checked before any such
+  redeploy, per the scope document's own prerequisite note.
 
 Mike decides.

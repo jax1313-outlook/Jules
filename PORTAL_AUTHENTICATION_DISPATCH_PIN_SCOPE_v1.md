@@ -1,7 +1,10 @@
 # PORTAL_AUTHENTICATION_DISPATCH_PIN_SCOPE_v1
 
 Program: Dispatch
-Status: **Scope only. Not yet approved for implementation.**
+Status: **IMPLEMENTED.** Scope approved and executed on `dispatch/portal-authentication-pin`,
+merged to `main` via PR #84 (squash commit `fcad6145`), exactly as scoped below. Required a
+follow-up commit (`ee4f200`, included in the same PR) fixing a CI regression the initial push
+missed — see the note at the end of this document.
 Origin: Track E of the closed `DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1` found
 Portal has no authentication of any kind (Finding #1). Mike reviewed the option set and decided:
 build the `DISPATCH_PIN` authentication scheme already specified in
@@ -150,5 +153,25 @@ under Library governance (spec Section 11's conditional path).
 Finding #5 (`PORTAL_SECRET_KEY` unconfirmed on the live VPS) should be checked and, if needed,
 fixed before or alongside deployment of whatever this scope produces — a PIN system is only as
 strong as the session mechanism underneath it.
+
+## Execution Note: A CI Regression Found And Fixed Before Merge
+
+The first push (commit `4d327c8`) passed locally but failed CI on all three Python versions —
+820 failed, 34 errors. The local pre-push run only covered `tests/test_portal.py`; this repository
+has 67 test files that instantiate the Portal app, most previously unknown to this scope. The
+new global `before_request` login gate applies to the entire app, and most of those other files'
+own `app`/`client` fixtures had no way to opt out, so their real routes started redirecting to
+`/login` instead of doing what their tests expected.
+
+Root cause, once found: a first attempted fix (computing a `LOGIN_DISABLED` default once, inside
+`create_app()`, based on the config dict passed at creation) missed the majority case — 59 of the
+67 files call `create_app()` with no config dict at all and set `app.config["TESTING"] = True` on
+the returned app object afterward, which is too late for a creation-time default to see. The
+actual fix (commit `ee4f200`) checks `TESTING`/`LOGIN_DISABLED` live, on every request, instead of
+snapshotting a default once — this reflects whatever's actually on `app.config` by request time
+regardless of when or how it got there, so none of the 67 files needed individual changes.
+
+Full suite verified clean before the second push: 0 failed, 0 errors, exit 0, across all 67 files
+— not just `tests/test_portal.py`. CI confirmed green on all three Python versions afterward.
 
 Mike decides.
