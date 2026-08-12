@@ -89,12 +89,14 @@ of a duplication bug rather than 95 distinct real issues. No fix applied — inv
 
 ## 3. Tracks Claude Can Execute Directly (source-code and local-run based)
 
-### Track C — Code Lineage Reconciliation
+### Track C — Code Lineage Reconciliation — **CLOSED**
 **Purpose**: one authoritative document tracing L1-COS → Hybrid v1 → `dispatch-old`/`cin-hybrid`
 (CLAUDE.md's Phases 1-2) → `jax1313-outlook/Dispatch` (Phase 3, now merged to `main` via PR #82)
 — reconciling every name this program has used (L1-COS, L2-COS, Hybrid v1, cin-hybrid, Dispatch)
 into one map, so future sessions don't have to reconstruct this from scattered uploads again.
-**Produces**: `DISPATCH_CODE_LINEAGE_MAP_v1.md`.
+**Produces**: `DISPATCH_CODE_LINEAGE_MAP_v1.md` — done. Timeline, naming glossary, authority
+hierarchy, and a cross-reference to Tracks A/B's live-verification findings, all cited to
+evidence gathered and verified this session.
 
 ### Track D — End-to-End Functional Verification
 **Purpose**: this session's tri-department work (Stage 1, Stage 2, the Approval Chain Safety
