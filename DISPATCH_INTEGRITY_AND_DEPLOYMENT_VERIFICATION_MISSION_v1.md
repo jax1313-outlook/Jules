@@ -20,7 +20,7 @@ split by who can act on them.
 
 ## 2. Tracks Requiring Mike (server/live access this session doesn't have)
 
-### Track A — Live Deployment Identity Check
+### Track A — Live Deployment Identity Check — **CLOSED**
 **Purpose**: settle definitively which codebase and commit is actually running on `l1truck.com`
 right now — `portal.app:create_app` (the real Flask app) or `cin_lite.portal` (the old dashboard),
 and which version.
@@ -28,6 +28,28 @@ and which version.
 portal.service` — the `ExecStart` and `WorkingDirectory` lines answer this in one look. If it's a
 git checkout, `git -C <dir> log -1` pins the exact commit.
 **Produces**: one factual line — entry point, directory, commit/version.
+
+**Finding, verified live on the VPS by Mike:**
+- The actual systemd unit is `l2cos-portal.service` (not `portal.service`, the name assumed from
+  `dispatch-old`'s deployment scripts — that assumption was wrong, and the mismatch itself was
+  informative).
+- `ExecStart=/opt/cin-hybrid/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8080 ...` — gunicorn,
+  a real WSGI server. `dispatch-old`'s `cin_lite.portal`/`dashboard.py` is built on Python's raw
+  `http.server.ThreadingHTTPServer`, not WSGI-compatible — gunicorn could not serve it. **This is
+  the real `jax1313-outlook/Dispatch` Flask app (`portal.app:create_app`), not the old dashboard.**
+- `WorkingDirectory=/opt/cin-hybrid` is a genuine git checkout of `jax1313-outlook/Dispatch`
+  (`origin/main` confirmed via `git -C /opt/cin-hybrid log -1`).
+- **Commit: `a7532529` — "Add Library, Archive, Intelligence models and templates (#4)," dated
+  July 31, 2026.** The checkout shows `HEAD -> main, origin/main, origin/HEAD` with no
+  divergence — not because it's current, but because nothing has fetched since July 31, so its
+  own idea of `origin/main` is exactly as stale as its `HEAD`.
+
+**Conclusion: the live site is ~12 days stale, sitting at PR #4 in the repo's history.** It
+predates "IFTA Phase 7" and whatever else landed natively on `main` since July 31, and it
+predates everything built this session — Stage 1, Stage 2, the Approval Chain Safety Gate, the
+Manager Preservation Decision, the presentation-layer consolidation panel, and PRs #82/#83
+merged today. None of that is reaching `l1truck.com`. Redeploying (`git pull` + service restart
+on the VPS) is a separate, not-yet-authorized action.
 
 ### Track B — Live Data Reality Check
 **Purpose**: confirm what's actually live in the deployed instance versus static/seed content.
