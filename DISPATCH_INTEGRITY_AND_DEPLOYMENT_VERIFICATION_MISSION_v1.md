@@ -1,8 +1,8 @@
 # DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1
 
 Program: Dispatch
-Status: **All six tracks (A-F) closed.** Findings recorded per track; no code changes made under
-this mission except where a track's own scope explicitly named one (Track F made none).
+Status: **MISSION CLOSED.** All six tracks (A-F) closed — see Section 7 for the full closing
+record. Findings recorded per track; no code changes made under this mission.
 Origin: Direct request ("Scope this as a formal review mission"), following the `dispatch-old`
 code-lineage discovery and the confirmed finding that the Portal has no authentication. Framed
 by Mike as establishing "a new starting point from where I am now" before any further deployment
@@ -338,3 +338,40 @@ This reinforces, does not modify, the existing Manager Preservation Decision
 both places.
 
 Mike decides.
+
+---
+
+## 7. Mission Closed
+
+All six tracks are closed. Nothing further is scheduled under this mission; any new work
+surfaced by it is a separate, future item, not a reopening of this one.
+
+**Track-by-track result:**
+
+| Track | Result |
+|---|---|
+| A — Live Deployment Identity Check | The live VPS (`l1truck.com`, `l2cos-portal.service`) runs a real checkout of `jax1313-outlook/Dispatch` frozen at commit `a753252` (Jul 31) — ~12 days stale relative to `main`, missing all of this session's merged work. |
+| B — Live Data Reality Check | Sandbox data is real only when `CIN_LITE_SAM_API_KEY` is set (unset on the live VPS at check time); only `conflicts.json`/`sandbox.json` are in live use; `conflicts.json`'s growth from 5 to 95 records against a flat `sandbox.json` count was flagged as a likely non-idempotent bug — unconfirmed, not fixed. |
+| C — Code Lineage Reconciliation | Produced `DISPATCH_CODE_LINEAGE_MAP_v1.md`, reconciling at least seven names across twelve-plus repos/folders into one timeline, naming glossary, and authority hierarchy. `jax1313-outlook/Dispatch` confirmed as the production-intent repository; everything else is candidate/reference material, not automatically authoritative. |
+| D — End-to-End Functional Verification | This session's tri-department work (Stage 1, Stage 2, the approval gate, the Attention Needed panel) confirmed genuinely functional via real HTTP against a live local server — not just passing tests. One real gap found: `promote_to_candidate()` has no HTTP route, so Stage 1's promotion step is unreachable by an actual user. |
+| E — Security Posture Review | Four findings recorded: no Portal authentication (High), the SAM.gov key exposed via direct chat upload only, never committed to git (High, rotate), `DISPATCH_EMAIL_SECRET`'s hardcoded public default (High if unresolved live, unconfirmed), `dispatch-old`'s missing `.gitignore` entry (Low, hygiene only). No fixes applied — Mike's calls. |
+| F — Doctrine Compliance Audit | 9 of 17 Building Rules compliant on direct evidence, 6 partial, Rule 16 (Capture Once, Use Many / Operational Intelligence) not implemented at all, Rule 17 (HOS/position doctrine) not assessed this session. One concrete in-code violation found all session — the Publisher approval-button bug — was already found and fixed before this track ran. |
+
+**What this mission did, in total**: verified, with real evidence rather than assumption, that
+this session's own build work is genuinely functional (Track D); that its real relationship to
+the only known live deployment is understood, including how stale that deployment is (Track A);
+that the live system's actual data posture is known (Track B); that the tangled multi-repo,
+multi-tool program history is reconciled into one coherent record (Track C); that its security
+posture is known rather than inferred (Track E); and that the whole of it has been checked,
+rule by rule, against the primary Constitution rather than against secondhand paraphrase of it
+(Track F).
+
+**What this mission explicitly did not do**, per Section 4: it authorized no fix, rotated no
+key, implemented no authentication, redeployed nothing to the live VPS, and reopened no
+already-decided item (Manager stays dormant, Archive stays Option A). Every finding above that
+implies follow-up work — the stale VPS, the unconfirmed `conflicts.json` growth, the missing
+promotion route, the four security findings, Rules 16/17's gaps — is left exactly where this
+mission found it: recorded, evidenced, and awaiting its own separate scope-and-approval step
+before anything changes.
+
+Mike decides what happens next, and in what order.
