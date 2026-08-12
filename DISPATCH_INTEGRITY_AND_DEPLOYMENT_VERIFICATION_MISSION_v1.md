@@ -179,7 +179,7 @@ repos, plus targeted reads):**
 |---|---|---|---|---|
 | 1 | Portal has no authentication of any kind | High | Established earlier this session — no `/login` route, no `flask_login`, no `before_request` gate, no reverse-proxy `auth_basic` in any deployment script found | Mike's call — decide an approach, then scope as its own mission |
 | 2 | Live SAM.gov API key exposed in chat | High | Uploaded twice in plaintext this session (`.env`/`.env.example`, and again pasted directly). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub | Rotate at SAM.gov |
-| 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | **High — confirmed vulnerable on the live deployment** | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). **Confirmed via direct check on the live VPS**: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` returned `0` — the variable is absent from `.env` entirely, so the running code is using the hardcoded public default right now. Anyone who knows that default (published in this open-source repo) can forge a valid token and trigger a real decision action without the actual email ever being sent — bypassing that approval gate entirely, live, today. | Mike to set a real, unique value for `DISPATCH_EMAIL_SECRET` in `/opt/cin-hybrid/.env` and restart `l2cos-portal.service` |
+| 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | **High — confirmed vulnerable, now RESOLVED on the live deployment (see update below)** | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). **Confirmed via direct check on the live VPS**: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` returned `0` — the variable was absent from `.env` entirely, so the running code was using the hardcoded public default. Anyone who knew that default (published in this open-source repo) could have forged a valid token and triggered a real decision action without the actual email ever being sent — bypassing that approval gate entirely. | Fixed — see update below |
 | 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Add `.env` to `.gitignore` if that repo is touched again |
 
 **Clean, worth stating explicitly**: both repos' `.env.example` templates contain only comments
@@ -197,6 +197,18 @@ REFERENCE_REVIEW_v1.md`'s later review of `SAMgov_API_Code_July26.docx`). Whethe
 early manual rotation or let the existing 90-day cycle run its course is Mike's call, not decided
 here — recorded as informational, severity/recommended-action left as-is above pending that
 decision.
+
+**Update on Finding #3 — RESOLVED**: Mike fixed this directly on the live VPS. First attempt
+appended a literal placeholder string instead of a real value (my example command used `<...>`
+as a fill-in marker, which was reasonably read as literal text to run — on my instruction, not
+a misstep on Mike's part), and a manually-generated `openssl rand -hex 32` value was pasted into
+this chat, which would have made that specific value unsafe to use for the same reason the SAM
+key is flagged. Corrected with a single command run entirely on the server — old line removed,
+a fresh value generated and written in the same step via `$(openssl rand -hex 32)`, never
+displayed in the terminal or this chat — then `l2cos-portal.service` restarted. Verified without
+ever printing the real value: exactly one `DISPATCH_EMAIL_SECRET=` line exists in `.env`, and it
+matches none of the known-bad values (the hardcoded default, the leaked placeholder text, the
+leaked `openssl` output). **Finding #3 is closed as fixed**, live, confirmed.
 
 ### Track F — Doctrine Compliance Audit Against the Primary Constitution — **CLOSED**
 **Purpose**: `dispatch-old`'s `CONSTITUTION.md` is the actual primary-source governing document —
