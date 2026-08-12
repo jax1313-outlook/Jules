@@ -1,7 +1,12 @@
 # DISPATCH_INTEGRATION_BRIDGE_SCOPE_v1
 
 Program: Dispatch
-Status: **Scope only. No implementation authorized by this document.**
+Status: **IMPLEMENTED.** Scope approved and executed on `dispatch/canonical-reconciliation-
+integration` (commit `48f22d5`), exactly as scoped below — one deviation confirmed at
+implementation time, not a departure: Section 3's flagged unknown (exact `cin_lite` call shape)
+was resolved by reading `cin_lite/pipeline.py`/`cin_lite/workflows/proposal.py` fresh, landing on
+`pipeline.resolve_decision(contract_id, "approve_proposal")` — the same function `cin_lite`'s own
+email-decision flow calls. Full Dispatch suite re-verified green.
 Origin: Stage 2 Decision — the ambiguity `STAGE_2_PUBLISHER_PROPOSAL_WRITER_BRIDGE_SCOPE_v1.md`
 Section 0 raised is resolved. Option A chosen: Publisher gains a new action type, `GOVCON_PROPOSAL`,
 as the bridge to `proposal_writer.py`. That decision is final and is not reopened by this

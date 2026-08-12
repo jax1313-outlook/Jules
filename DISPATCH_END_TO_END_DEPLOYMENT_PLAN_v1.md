@@ -119,8 +119,16 @@ Required questions for Stage 2:
 
 Required output: **`STAGE_2_PUBLISHER_PROPOSAL_WRITER_BRIDGE_SCOPE_v1.md`** (companion document,
 this session), which surfaces a prerequisite finding question 1 exposes: full scoping done there.
+Ambiguity resolved via `DISPATCH_INTEGRATION_BRIDGE_SCOPE_v1.md`: Option A, `GOVCON_PROPOSAL`.
 
-**Do not implement Stage 2 until scope is approved.**
+**STAGE 2 — IMPLEMENTED.** Approved and executed on `dispatch/canonical-reconciliation-
+integration` (commit `48f22d5`): a ninth Publisher action type
+(`"GovCon Proposal Draft Required"`), an optional `contract_id` field, and a `PENDING→DRAFT`
+hook calling `cin_lite.pipeline.resolve_decision()` — the same function `cin_lite`'s own
+email-decision flow uses. Full suite re-verified green.
+
+**Both stages of this plan are now implemented.** Nothing further authorized past this point
+without a new, separate go-ahead.
 
 ### Beyond Stage 2
 
