@@ -1,7 +1,10 @@
 # PRESENTATION_LAYER_CONSOLIDATION_SCOPE_v1
 
 Program: Dispatch
-Status: **Scope only. No implementation authorized by this document.**
+Status: **IMPLEMENTED.** Scope approved and executed on `dispatch/canonical-reconciliation-
+integration` (commit `122b03c`), exactly as scoped — the minimum-viable target from question 3,
+composition only, `/publisher`/`/pipeline`/`/queues` untouched (verified by a regression test).
+Full Dispatch suite re-verified green.
 Origin: Named as a suggested next step in `DISPATCH_END_TO_END_DEPLOYMENT_PLAN_v1.md`'s "Beyond
 Stage 2" section, grounded in `DISPATCH_STAGE6_OBJECT_FLOW_SCOPING_v1.md` Link 10's finding that
 Portal already fragments "Card/Work Item/History" across three unrelated views on one page.
