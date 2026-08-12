@@ -189,6 +189,15 @@ found anywhere in either repo's current tree or full commit history via broad pa
 
 No fixes applied — findings and severities only, per this track's own scope.
 
+**Update on Finding #2**: Mike confirmed the exposed key is on a 90-day rotation cycle at SAM.gov
+with roughly 49 days remaining as of this update — it is not a static, indefinitely-valid
+credential. This changes the calculus on urgency but not the underlying fact of the exposure
+(uploaded to this conversation three separate times total, per `DISPATCH_COPILOT_ARTIFACT_
+REFERENCE_REVIEW_v1.md`'s later review of `SAMgov_API_Code_July26.docx`). Whether to force an
+early manual rotation or let the existing 90-day cycle run its course is Mike's call, not decided
+here — recorded as informational, severity/recommended-action left as-is above pending that
+decision.
+
 ### Track F — Doctrine Compliance Audit Against the Primary Constitution — **CLOSED**
 **Purpose**: `dispatch-old`'s `CONSTITUTION.md` is the actual primary-source governing document —
 read directly for the first time this session, rather than operated on via secondhand paraphrase
