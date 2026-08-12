@@ -188,3 +188,23 @@ does not authorize building it. Whether to scope that narrower version as its ow
 mission, or continue waiting for full Stage 6 resolution, is Mike's call.
 
 Mike decides.
+
+---
+
+## 8. Reinforcement: `Hold`'s Manager Lane Does Not Reopen This Decision
+
+A separate repo, `jax1313-outlook/hold`, was found to contain a `library_seed/Constitutions/
+MANAGER_CONSTITUTION_v1.md` — part of an unstarted "Dispatch Matrix Group 1" initiative (four
+lanes: Librarian, Manager, Receipt/IFTA, Reports; verified zero application code exists anywhere
+in that repository — every file under `src/`/`tests/`/`tools/` is an empty `.gitkeep`).
+
+Mike's ruling, verbatim: **Manager Queue remains dormant. Treat `Hold`'s Manager lane as
+archived planning material unless explicitly reactivated. Do not implement Manager
+functionality based solely on the existence of `MANAGER_CONSTITUTION_v1.md`.**
+
+The Manager Preservation Decision (Section 7 above, and `jax1313-outlook/Dispatch:docs/
+MANAGER.md`) stands unmodified. This section exists only to record that a plausible-looking
+trigger for reopening it (a real, named Manager constitution existing elsewhere) was checked
+and explicitly declined.
+
+Mike decides.

@@ -1,0 +1,159 @@
+# DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1
+
+Program: Dispatch
+Status: **Future work package — planning only. Scoped this turn; no track has started.**
+Origin: Direct request ("Scope this as a formal review mission"), following the `dispatch-old`
+code-lineage discovery and the confirmed finding that the Portal has no authentication. Framed
+by Mike as establishing "a new starting point from where I am now" before any further deployment
+work.
+Rule: No code changes authorized by this document. No track begins without its own separate
+go-ahead, matching every prior stage this session.
+
+---
+
+## 1. What This Mission Is
+
+Before any further deployment work, verify — with evidence, not assumption — that what has been
+built actually operates end to end, that its real relationship to the live VPS is understood, and
+that its security and doctrine posture is known rather than inferred from paraphrase. Six tracks,
+split by who can act on them.
+
+## 2. Tracks Requiring Mike (server/live access this session doesn't have)
+
+### Track A — Live Deployment Identity Check
+**Purpose**: settle definitively which codebase and commit is actually running on `l1truck.com`
+right now — `portal.app:create_app` (the real Flask app) or `cin_lite.portal` (the old dashboard),
+and which version.
+**Action**: on the VPS, `systemctl status portal.service` and `cat /etc/systemd/system/
+portal.service` — the `ExecStart` and `WorkingDirectory` lines answer this in one look. If it's a
+git checkout, `git -C <dir> log -1` pins the exact commit.
+**Produces**: one factual line — entry point, directory, commit/version.
+
+### Track B — Live Data Reality Check
+**Purpose**: confirm what's actually live in the deployed instance versus static/seed content.
+Mike already confirmed the live instance doesn't scan SAM.gov live the way the local L1-COS
+prototype did — this track pins down the rest: which subsystems (freight/dispatch entry,
+Publisher queue, Library, Archive) are live-fed versus placeholder data in that specific
+deployment.
+**Produces**: a clear live-vs-static list for the deployed instance specifically.
+
+## 3. Tracks Claude Can Execute Directly (source-code and local-run based)
+
+### Track C — Code Lineage Reconciliation
+**Purpose**: one authoritative document tracing L1-COS → Hybrid v1 → `dispatch-old`/`cin-hybrid`
+(CLAUDE.md's Phases 1-2) → `jax1313-outlook/Dispatch` (Phase 3, now merged to `main` via PR #82)
+— reconciling every name this program has used (L1-COS, L2-COS, Hybrid v1, cin-hybrid, Dispatch)
+into one map, so future sessions don't have to reconstruct this from scattered uploads again.
+**Produces**: `DISPATCH_CODE_LINEAGE_MAP_v1.md`.
+
+### Track D — End-to-End Functional Verification
+**Purpose**: this session's tri-department work (Stage 1, Stage 2, the Approval Chain Safety
+Gate, the presentation-layer panel) has only ever been verified by `pytest` — never by actually
+running the Flask app and clicking through it as a user would. Tests prove the code is correct;
+they don't prove the feature works end to end. Close that gap.
+**Scope**: run `jax1313-outlook/Dispatch`'s real Flask app locally (`main`, post-merge) and walk
+real flows: create a broker-type Intelligence record → promote → approve → confirm a Publisher
+action actually appears in the rendered `/publisher` page; create a `GovCon Proposal Draft
+Required` action → generate a draft → confirm the approval gate genuinely blocks an unapproved
+`APPROVED` transition through the real UI, not just via a direct API call; confirm the "Attention
+Needed Across Departments" panel actually renders real cross-department items on `/home`.
+**Produces**: a report of what was actually run and observed (real HTTP responses / rendered
+HTML), distinct from and in addition to the existing test suite's green result.
+
+### Track E — Security Posture Review
+**Purpose**: consolidate the two concrete findings already surfaced this session — no
+authentication anywhere in the Portal, and a live SAM.gov API key exposed in an uploaded `.env`
+— into one findings record, plus a fresh scan of both `jax1313-outlook/Dispatch` and `dispatch-old`
+for any other exposed secrets or credentials in source control.
+**Produces**: a findings list with severity and recommended next action per item. Rotating the
+exposed key and deciding on an authentication approach are both Mike's calls, not implemented
+here.
+
+### Track F — Doctrine Compliance Audit Against the Primary Constitution
+**Purpose**: `dispatch-old`'s `CONSTITUTION.md` is the actual primary-source governing document —
+read directly for the first time this session, rather than operated on via secondhand paraphrase
+the way it was for everything prior. Run a proper rule-by-rule pass: does `jax1313-outlook/
+Dispatch`'s real implementation hold up against the 17 Building Rules and Article III's
+department table?
+**Produces**: a rule-by-rule compliance table with evidence, not assumption, for each rule.
+
+## 4. What This Mission Is Not
+
+Not an authorization to fix anything found — no auth implementation, no key rotation, no code
+changes of any kind. Not a re-scope of any already-decided item (Manager stays dormant, Archive
+stays Option A). Investigation and verification only.
+
+## 5. Sequencing Note
+
+Tracks C, D, E, and F are investigation/verification work Claude can start directly, each on its
+own separate go-ahead per this program's standing practice. Tracks A and B need Mike's server
+access first and don't block the others — they can run in parallel with C/D/E/F, not before them.
+
+Mike decides which track(s) to start, and in what order.
+
+---
+
+## 6. Update: Repo Discovery Findings and Rulings
+
+Substantially expands Track C's scope. Mike granted broad explore-as-you-see-fit access across
+the full `jax1313-outlook` account; seven additional repos were found and surveyed:
+`Jules`, `Jules-2`, `Jules-3`, `Claude`, `Claude-2`, `Test-Grounds`, `Hold`.
+
+### 6.1 Repo Matrix
+
+| Repo | Role (per its own `DISPATCH_REPO_MANIFEST_v3.md` promotion path) | Content | Last commit | Finding |
+|---|---|---|---|---|
+| `Jules` | Round 2 clean review copy | 13 docs, baseline bundle only | Aug 10 | Baseline doctrine, Constitution v2 |
+| `Jules-2` | Clean review repo | Baseline + Decision Matrix, Repo Manifest v3, Spine Spec v1, Constitution v3, Publisher.md | Aug 10 | First "active" round per Manifest v3 |
+| `Jules-3` | Clean review repo (most complete) | Baseline + Security/Auth spec, Alert Governance, Archive Review Policy, Version Doctrine, Intelligence Verification Workflow | Aug 10 | Latest, most elaborated round |
+| `Claude` | Clean review repo | Baseline + Build Proposal, Program Map, Constitution v2, Context Master v2 | Aug 10 | Parallel round, earlier Constitution |
+| `Claude-2` | Clean review repo | Baseline + Decision Matrix, two Spine Spec copies, Stress Test Prompt, Constitution v3, Publisher.md | Aug 10 | Matches Jules-2/3's active set |
+| `Test-Grounds` | Pipeline stage 5, "experimental build and prototype testing" | Numbered doctrine series (02-08), Agent Governance Law, Constitution v2 | Aug 8 | Different, numbered doctrine variant |
+| `Hold` | Pipeline stage 6, "stabilization and review lane" — code scaffold, not docs | `config/`, `contracts/`, `docs/`, `library_seed/`, `src/`, `tests/`, `tools/`, 68 files | Aug 4 | See 6.2 |
+| `dispatch-old` | Predecessor ("cin-hybrid," Phases 1-2 of the CLAUDE.md roadmap) | Real working code | earlier | Already fully reviewed this session |
+| `Dispatch` | Pipeline stage 7, "production-intent repository after Mike approval" | Real working code, tri-department work merged | today | What this whole session built |
+
+Nine of the ten baseline doctrine files (`ARCHITECTURAL_DISPOSITION.md`, `ARCHITECTURE.md`,
+`COGNITIVE_FUNCTIONS.md`, `CONTEXT_MASTER.md`, `MANAGER.md`, `PORTAL_DESCRIPTION.md`,
+`REFINEMENT_ANALYST_REMOVAL.md`, `SUPERSESSION_MAP.md`, `DISPATCH_SPINE_OVERVIEW.md`) are
+byte-identical (confirmed by checksum) across all five doctrine-review repos — a common bundle
+distributed for independent review, not five diverging drafts.
+
+### 6.2 `Hold` — Verified: Zero Application Code
+
+`Hold`'s README describes a separate initiative, "Dispatch Matrix Group 1": four lanes
+(Librarian, Manager, Receipt/IFTA, Reports), frozen data contracts, a 14-item Approval Register
+(all resolved as of Aug 4), six validation gates per lane, strict merge-order branch discipline.
+
+Checked `src/`, `tests/`, `tools/` directly: **every file in all three is a `.gitkeep`
+placeholder.** Zero lines of application code exist anywhere in the repository. This confirms,
+rather than contradicts, the README's own claim ("no lane session has been opened... nothing
+yet — seed only"). The only real content is `library_seed/Constitutions/` (per-lane governance
+documents: `LIBRARIAN_CONSTITUTION_v1.md`, `MANAGER_CONSTITUTION_v1.md`,
+`RECEIPT_CONSTITUTION_v1.md`, `IFTA_CONSTITUTION_v1.md`, `REPORTS_CHARTER_v1.md`, plus shared
+`DISPATCH_BASE_CONSTITUTION_v1.md`, `APPROVAL_REGISTER.md`, `MEMORY_DOCTRINE_v1.md`) and one
+data file, `expense_vocabulary.v1.json`.
+
+Matrix Group 1's four lanes (Librarian/Manager/Receipt-IFTA/Reports) are not the same
+decomposition as this session's tri-department work (Intelligence/Library/Publisher) — a
+different, complementary feature set, not duplicate or competing work on the same features.
+
+### 6.3 Ruling: `Hold` Is Reference Material, Not Authoritative
+
+Mike's ruling, verbatim in substance: **`Hold` is a staging and stabilization repository —
+candidate architecture, scaffolding, and work intended for evaluation before promotion.
+`Dispatch` is the current production-intent repository. The `Hold` architecture should be
+treated as prior design work and reference material, not automatically as the authoritative
+replacement for `Dispatch`.** Applies to all seven newly-found repos, not `Hold` alone.
+
+### 6.4 Ruling: Manager Queue Reinforcement
+
+Mike's ruling, verbatim: **Manager Queue remains dormant. Treat `Hold`'s Manager lane as
+archived planning material unless explicitly reactivated. Do not implement Manager
+functionality based solely on the existence of `MANAGER_CONSTITUTION_v1.md`.**
+
+This reinforces, does not modify, the existing Manager Preservation Decision
+(`MANAGER_ORCHESTRATION_REVIEW_v1.md`, `jax1313-outlook/Dispatch:docs/MANAGER.md`). Recorded in
+both places.
+
+Mike decides.
