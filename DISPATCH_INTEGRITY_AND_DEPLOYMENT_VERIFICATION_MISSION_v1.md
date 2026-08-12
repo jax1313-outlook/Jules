@@ -178,7 +178,7 @@ repos, plus targeted reads):**
 | # | Finding | Severity | Evidence | Recommended action |
 |---|---|---|---|---|
 | 1 | Portal has no authentication of any kind | **High — RESOLVED in code (see update below); live VPS still unprotected until redeployed** | Established earlier this session — no `/login` route, no `flask_login`, no `before_request` gate, no reverse-proxy `auth_basic` in any deployment script found | Fixed in code — see update below |
-| 2 | Live SAM.gov API key exposed in chat | High | Uploaded twice in plaintext this session (`.env`/`.env.example`, and again pasted directly). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub | Rotate at SAM.gov |
+| 2 | Live SAM.gov API key exposed in chat | High (as exposed) — **DECIDED: leave as-is (see update below)** | Uploaded three times in plaintext this session (`.env`/`.env.example`, pasted directly, and again via `SAMgov_API_Code_July26.docx`). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub. On a 90-day auto-rotation cycle, ~49 days remaining at time of decision — not a static credential | Mike's decision: no rotation at this time, not treated as an active threat |
 | 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | **High — confirmed vulnerable, now RESOLVED on the live deployment (see update below)** | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). **Confirmed via direct check on the live VPS**: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` returned `0` — the variable was absent from `.env` entirely, so the running code was using the hardcoded public default. Anyone who knew that default (published in this open-source repo) could have forged a valid token and triggered a real decision action without the actual email ever being sent — bypassing that approval gate entirely. | Fixed — see update below |
 | 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) — **RESOLVED (see update below)** | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Fixed — see update below |
 | 5 | `PORTAL_SECRET_KEY` defaults to a hardcoded, publicly-known string (`"dev-portal-key-change-in-production"`) if unset | **High — confirmed vulnerable, now RESOLVED on the live deployment (see update below)** | `portal/config.py:9,33,44-46`. This is Flask's session-signing `SECRET_KEY` — it signs every Portal session cookie. Only a `stderr` warning is emitted if unset (`check_secret_key()`), not a hard failure. **Confirmed via direct check on the live VPS**: `grep -c "PORTAL_SECRET_KEY" /opt/cin-hybrid/.env` returned `0` — the variable was absent from `.env` entirely, so the running code was using the hardcoded public default. Directly relevant to the `DISPATCH_PIN` build (Section 8, Finding #1): a PIN login system built on Flask sessions is only as strong as this key — session forgery would have bypassed PIN login entirely regardless of how correct the PIN logic is. | Fixed — see update below |
@@ -443,10 +443,16 @@ recorded, not a reopening of any track.
   exactly one `PORTAL_SECRET_KEY=` line exists and it doesn't match the known default. **Finding
   #5 is closed as fixed, live, confirmed.**
 
-**Remaining Track E status as of this update**: only Finding #2 (SAM.gov key) is still open —
-fully investigated already, nothing left to check or run, purely a pending decision (early manual
-rotation vs. letting the existing 90-day cycle, ~49 days remaining, run its course). Mike's call
-alone. **Findings #1, #3, #4, and #5 are all closed, fixed, and verified. Finding #2 is the only
-open item remaining from the entire six-track mission.**
+- **Finding #2 (SAM.gov key) — CLOSED, decided**: Mike's ruling, verbatim in substance: **leave
+  as-is, not treated as an active threat at this time.** No rotation performed. This is a
+  considered decision, not an unresolved item — informed by the key's 90-day auto-rotation cycle
+  (~49 days remaining at time of decision) and the exposure channel being direct chat upload only,
+  never committed to git history in either repo. Recorded, not to be silently re-flagged in any
+  future review of this session's work without new evidence changing the picture (e.g. the key
+  turning up somewhere it wasn't found before, or its rotation window lapsing without action).
+
+**Track E is now fully closed — all five findings resolved.** Findings #1, #3, #4, and #5 are
+fixed and verified live; Finding #2 is closed by Mike's explicit decision not to act. No open
+items remain from the entire six-track `DISPATCH_INTEGRITY_AND_DEPLOYMENT_VERIFICATION_MISSION_v1`.
 
 Mike decides.
