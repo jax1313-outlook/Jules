@@ -62,8 +62,12 @@ ability to keep a naming convention." This document is the reconciliation.
 ## 5. What's Actually Running Right Now (Cross-Reference To Tracks A/B)
 
 - **`https://l1truck.com`** → `l2cos-portal.service` → gunicorn → `/opt/cin-hybrid`, a checkout
-  of `jax1313-outlook/Dispatch` frozen at commit `a753252` (Jul 31) — ~12 days stale relative to
-  `main` today, missing all of this session's work.
+  of `jax1313-outlook/Dispatch`. **Redeployed Aug 12, 2026**: `git pull` fast-forwarded
+  `a753252` → `5274d47`, service restarted, `DISPATCH_PIN` Authority identity bootstrapped
+  (`python -m portal.cli`), gate confirmed live via `curl` (`302 → /login`, was `200`
+  pre-restart). Live now includes Stage 1/2 tri-department wiring, the Attention Needed panel,
+  `DISPATCH_PIN` Portal authentication, and the Operational Intelligence verification-labeling
+  fix (PR #85) — everything merged to `main` as of that commit.
 - **Port 8000, local, PowerShell-run** → `l1_cos/app.py` — real SAM.gov sweeps, real Publisher
   drafts, unrelated to the VPS.
 - **Hybrid v1's Docker containers** — not confirmed running during Track A's `systemctl`/nginx
