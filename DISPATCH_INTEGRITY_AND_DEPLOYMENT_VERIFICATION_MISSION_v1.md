@@ -162,7 +162,7 @@ is confirmed genuinely functional end to end, not just passing isolated tests �
 concrete gap found: Stage 1's promotion step has no UI/API path at all. No fix applied here;
 Track D is verification only.
 
-### Track E — Security Posture Review
+### Track E — Security Posture Review — **CLOSED**
 **Purpose**: consolidate the two concrete findings already surfaced this session — no
 authentication anywhere in the Portal, and a live SAM.gov API key exposed in an uploaded `.env`
 — into one findings record, plus a fresh scan of both `jax1313-outlook/Dispatch` and `dispatch-old`
@@ -170,6 +170,23 @@ for any other exposed secrets or credentials in source control.
 **Produces**: a findings list with severity and recommended next action per item. Rotating the
 exposed key and deciding on an authentication approach are both Mike's calls, not implemented
 here.
+
+**Findings, verified this pass (broad regex scan of current tree + full git history in both
+repos, plus targeted reads):**
+
+| # | Finding | Severity | Evidence | Recommended action |
+|---|---|---|---|---|
+| 1 | Portal has no authentication of any kind | High | Established earlier this session — no `/login` route, no `flask_login`, no `before_request` gate, no reverse-proxy `auth_basic` in any deployment script found | Mike's call — decide an approach, then scope as its own mission |
+| 2 | Live SAM.gov API key exposed in chat | High | Uploaded twice in plaintext this session (`.env`/`.env.example`, and again pasted directly). **Not found committed to any git history in either repo** — the exposure channel was direct upload to this conversation, not GitHub | Rotate at SAM.gov |
+| 3 | `DISPATCH_EMAIL_SECRET` defaults to a hardcoded, publicly-known string (`"dispatch-dev-secret"`) if unset | High, if unresolved on the live deployment | `cin_lite/email_delivery.py:38,90`. This HMAC secret signs the tokens gating `cin_lite`'s email decision-action links (`approve_proposal`, `approve_archive`, etc., verified in `portal/routes/decisions.py`). If the live `.env` hasn't overridden it, anyone who knows this public default (published in this open-source repo) could forge a valid token and trigger a real decision action without ever receiving the actual email — bypassing that approval gate entirely. **Status on the live VPS is unconfirmed** — same one-line check pattern Mike already ran for the SAM key would settle it: `grep -c "DISPATCH_EMAIL_SECRET" /opt/cin-hybrid/.env` | Mike to check directly; set a real value if unset |
+| 4 | `dispatch-old`'s `.gitignore` doesn't list `.env` | Low (hygiene only) | Confirmed via full history search: no real `.env` was ever actually committed to that repo — this is a missing safety net, not an active exposure | Add `.env` to `.gitignore` if that repo is touched again |
+
+**Clean, worth stating explicitly**: both repos' `.env.example` templates contain only comments
+and placeholders, no real values. No AWS-style keys, private-key blocks, or hardcoded passwords
+found anywhere in either repo's current tree or full commit history via broad pattern scan.
+`jax1313-outlook/Dispatch`'s own `.gitignore` does correctly cover `.env`.
+
+No fixes applied — findings and severities only, per this track's own scope.
 
 ### Track F — Doctrine Compliance Audit Against the Primary Constitution
 **Purpose**: `dispatch-old`'s `CONSTITUTION.md` is the actual primary-source governing document —
