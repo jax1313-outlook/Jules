@@ -110,3 +110,31 @@ merge `dispatch/canonical-reconciliation-integration` into `main` and redeploy, 
 work actually reaches the live instance. Not decided by this document.
 
 Mike decides.
+
+---
+
+## Update: Merged to `main`
+
+Approved ("Approve the merge to main"). `dispatch/canonical-reconciliation-integration` merged
+into `main` in `jax1313-outlook/Dispatch` via **PR #82**
+(`https://github.com/jax1313-outlook/Dispatch/pull/82`), merge commit `be127ba`.
+
+`main` was branch-protected — a direct `git push` was rejected (GH013, "Changes must be made
+through a pull request"). Went through the proper PR path instead: opened PR #82, waited for the
+repo's own CI (`pytest`, matrix py3.11/3.12/3.13) to go green on the merge — all three passed —
+then merged via the GitHub API (merge commit, not squash, to preserve the individual stage
+commits' history and the commit hashes already referenced throughout this program's tracking
+documents).
+
+`main` is now 11 commits ahead of where it was at session start, containing everything built this
+session: Stage 3 (integration branch), Stage 4 (`reconciliation/` adapters), Stage 5 items 1-3
+(the Approval Chain Safety Gate), the Publisher "Mark Approved" button fix, the Manager
+Preservation Decision, Stage 1 (Intelligence → Library → Publisher, broker-type), Stage 2 (the
+GovCon Proposal Integration Bridge), and the presentation-layer consolidation panel.
+
+**This still does not mean the live instance at `l1truck.com` is running any of it.** Deployment
+there has consistently been manual (`scp` + a setup script), not git-triggered — merging to
+`main` on GitHub does not, by itself, push anything to the VPS. Getting this work onto the live
+server is a separate, not-yet-requested action.
+
+Mike decides.

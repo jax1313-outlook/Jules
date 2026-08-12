@@ -144,4 +144,13 @@ of this program (Stages 3-5 of the canonical reconciliation branch, the Publishe
 prior "start X" instructions). This document fixes the sequence and the doctrine; it does not
 advance authorization past scoping.
 
+## 7. Merged to `main`
+
+Approved. `dispatch/canonical-reconciliation-integration` merged into `jax1313-outlook/Dispatch`'s
+`main` via PR #82 (commit `be127ba`), after `main` branch protection required going through a
+pull request rather than a direct push. CI (pytest, py3.11/3.12/3.13) green before merge. Full
+detail in `DISPATCH_DEPLOYMENT_STATUS_REPORT_v1.md`'s "Merged to `main`" update. The live VPS
+instance at `l1truck.com` still needs a separate, manual redeploy step to actually receive this
+code — merging to `main` on GitHub does not push to the server by itself.
+
 Mike decides.
