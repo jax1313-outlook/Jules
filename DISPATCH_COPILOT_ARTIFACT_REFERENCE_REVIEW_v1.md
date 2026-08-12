@@ -104,6 +104,12 @@ a simple bugfix. If wanted, the fix is a rename, not a new value:
 /opt/cin-hybrid/.env` (run entirely on the server; nothing sensitive touches chat), then restart
 `l2cos-portal.service`.
 
+**Decided — CLOSED**: Mike's ruling, verbatim: **leave it on fallback for now.** No rename
+performed; `ANTHROPIC_API_KEY` stays unset on the live VPS by choice, not oversight. The
+deterministic-fallback behavior in `cin_lite`'s agents remains the live, intended behavior until
+Mike decides otherwise — this is a considered decision, not an unresolved item, and should not be
+silently re-flagged in any future review without new evidence changing the picture.
+
 **Status: check requested of Mike this session (relayed command sent). Output not yet received —
 still open as of this document's last update.**
 
