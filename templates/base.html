@@ -15,9 +15,11 @@
     <nav class="nav-links">
       <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Public Home</a>
       <a href="{{ url_for('capabilities') }}" class="{% if request.endpoint == 'capabilities' %}active{% endif %}">Capabilities</a>
-      <a href="{{ url_for('driver_portal') }}" class="{% if request.endpoint == 'driver_portal' %}active{% endif %}">Driver Portal</a>
+      <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">About</a>
+      <a href="{{ url_for('contact') }}" class="{% if request.endpoint == 'contact' %}active{% endif %}">Contact</a>
+      <a href="{{ url_for('driver_portal') }}" class="{% if request.endpoint == 'driver_portal' %}active{% endif %}">Driver Cockpit</a>
       <a href="{{ url_for('operations_portal') }}" class="{% if request.endpoint == 'operations_portal' %}active{% endif %}">Operations Portal</a>
-      <a href="{{ url_for('stakeholder_portal') }}" class="{% if request.endpoint == 'stakeholder_portal' %}active{% endif %}">Broker / Stakeholder</a>
+      <a href="{{ url_for('stakeholder_portal') }}" class="{% if request.endpoint == 'stakeholder_portal' %}active{% endif %}">Stakeholder Window</a>
     </nav>
   </header>
 

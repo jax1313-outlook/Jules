@@ -3,11 +3,22 @@ Dispatch Presentation Layer Flask Application
 Integrates Driver Portal, Operations Portal, External Stakeholder Portal, and Public Website.
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from werkzeug.utils import secure_filename
 from dispatch_spine import spine_store, CONSEQUENCE_LABELS, LEVEL_0_SILENT_LOG
 import os
 
 app = Flask(__name__)
+
+# Legacy Alias & Redirect Routes to wire legacy L2-COS / Portal URLs
+@app.route("/portal")
+@app.route("/cos")
+@app.route("/l2-cos")
+@app.route("/dashboard")
+@app.route("/admin")
+def legacy_portal_redirect():
+    """Redirects legacy portal URLs seamlessly to the Dispatch Operations Portal."""
+    return redirect(url_for("operations_portal"))
 
 # ---------------------------------------------------------
 # PUBLIC WEBSITE ROUTES (Presentation Layer v2)
@@ -143,7 +154,7 @@ def api_driver_upload_pod():
     if "pod_file" in request.files:
         file = request.files["pod_file"]
         if file and file.filename:
-            saved_filename = file.filename
+            saved_filename = secure_filename(file.filename)
             file.save(os.path.join(upload_dir, saved_filename))
 
     spine_store.active_trip.pod_status = "UPLOADED"
