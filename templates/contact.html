@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Contact | Level 1 Transport{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h2>Contact Level 1 Transport</h2>
+  <p class="subtitle">One Call. Problem Solved.</p>
+  <p class="tagline">Direct dispatcher contact for immediate carrier assignment and emergency micro-response.</p>
+</div>
+
+<div class="grid-layout">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Dispatch Hotline</div></div>
+    <div class="card-body">
+      <div class="data-row"><span class="data-label">Phone:</span><span class="data-value">(904) 555-0100</span></div>
+      <div class="data-row"><span class="data-label">Email:</span><span class="data-value">dispatch@L1truck.com</span></div>
+      <div class="data-row"><span class="data-label">Location:</span><span class="data-value">Jacksonville, FL 32206</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Request Service</div></div>
+    <div class="card-body">
+      <form onsubmit="event.preventDefault(); alert('Service Request Received by Dispatch!');">
+        <input type="text" placeholder="Company / Broker Name" class="search-box">
+        <input type="text" placeholder="Pickup & Delivery Points" class="search-box">
+        <input type="text" placeholder="Cargo Details & Dimensions" class="search-box">
+        <button type="submit" class="btn btn-warning btn-large">Submit Service Request</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
