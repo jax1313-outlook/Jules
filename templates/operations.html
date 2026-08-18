@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Operations Portal | Digital Backroom Office{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem; gap:1rem;">
+  <div>
+    <h2 style="font-size:1.8rem; font-weight:800; color:#fff;">OPERATIONS / MANAGEMENT PORTAL</h2>
+    <p style="color:var(--accent-gold); font-weight:700;">Internal Digital Backroom Office • Mike Zachary Final Authority</p>
+  </div>
+  <div style="display:flex; gap:0.5rem;">
+    <span class="badge badge-l3">Decision Queue: {{ decision_cards|length }}</span>
+    <span class="badge badge-l4">Conflict Queue: {{ conflict_cards|length }}</span>
+    <span class="badge badge-l5">Authority Queue: {{ authority_cards|length }}</span>
+  </div>
+</div>
+
+<div class="grid-layout" style="grid-template-columns: 2fr 1fr;">
+  <!-- Left Column: Authoritative Action Cards & Work Queues -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+    <!-- LEVEL 5: SYSTEM AUTHORITY CARDS -->
+    {% for card in authority_cards %}
+    <div class="card" id="card-node-{{ card.card_id }}" style="border: 2px solid var(--accent-red);">
+      <div class="card-header" style="background:var(--accent-red); color:#fff;">
+        <div class="card-title">{{ card.title }}</div>
+        <span class="badge" style="background:#000; color:#fff;">LEVEL 5: FINAL MIKE APPROVAL</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:1rem; margin-bottom:1rem;">{{ card.summary }}</p>
+        <div style="background:#0f172a; padding:0.8rem; border-radius:6px; margin-bottom:1rem; border-left:3px solid var(--accent-red);">
+          <strong style="color:var(--accent-red); font-size:0.85rem; text-transform:uppercase;">Recommendation:</strong>
+          <p style="font-size:0.9rem; color:var(--text-primary); margin-top:0.25rem;">{{ card.recommendation }}</p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--accent-gold); font-style:italic; margin-bottom:1rem;">
+          {{ card.required_closing }}
+        </div>
+        <div class="action-bar">
+          {% for action in card.allowed_actions %}
+          <button onclick="executeAction('{{ card.card_id }}', '{{ action }}')" class="btn btn-danger">{{ action }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- LEVEL 4: CONFLICT & EXCEPTION CARDS -->
+    {% for card in conflict_cards %}
+    <div class="card" id="card-node-{{ card.card_id }}" style="border: 2px solid var(--accent-gold);">
+      <div class="card-header" style="background:var(--accent-gold); color:#000;">
+        <div class="card-title">{{ card.title }}</div>
+        <span class="badge" style="background:#000; color:var(--accent-gold);">LEVEL 4: CONFLICT RESOLUTION</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:1rem; margin-bottom:1rem;">{{ card.summary }}</p>
+        <div style="background:#0f172a; padding:0.8rem; border-radius:6px; margin-bottom:1rem; border-left:3px solid var(--accent-gold);">
+          <strong style="color:var(--accent-gold); font-size:0.85rem; text-transform:uppercase;">Recommendation:</strong>
+          <p style="font-size:0.9rem; color:var(--text-primary); margin-top:0.25rem;">{{ card.recommendation }}</p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--accent-gold); font-style:italic; margin-bottom:1rem;">
+          {{ card.required_closing }}
+        </div>
+        <div class="action-bar">
+          {% for action in card.allowed_actions %}
+          <button onclick="executeAction('{{ card.card_id }}', '{{ action }}')" class="btn btn-warning">{{ action }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- LEVEL 3: DECISION CARDS -->
+    {% for card in decision_cards %}
+    <div class="card" id="card-node-{{ card.card_id }}" style="border: 2px solid var(--accent-blue);">
+      <div class="card-header" style="background:var(--accent-blue); color:#000;">
+        <div class="card-title">{{ card.title }}</div>
+        <span class="badge" style="background:#000; color:var(--accent-blue);">LEVEL 3: MIKE DECISION</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:1rem; margin-bottom:1rem;">{{ card.summary }}</p>
+        <div style="background:#0f172a; padding:0.8rem; border-radius:6px; margin-bottom:1rem; border-left:3px solid var(--accent-blue);">
+          <strong style="color:var(--accent-blue); font-size:0.85rem; text-transform:uppercase;">Recommendation:</strong>
+          <p style="font-size:0.9rem; color:var(--text-primary); margin-top:0.25rem;">{{ card.recommendation }}</p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--accent-gold); font-style:italic; margin-bottom:1rem;">
+          {{ card.required_closing }}
+        </div>
+        <div class="action-bar">
+          {% for action in card.allowed_actions %}
+          <button onclick="executeAction('{{ card.card_id }}', '{{ action }}')" class="btn btn-primary">{{ action }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- DISPATCH WORK QUEUE (State Engine Table) -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Dispatch Work Queue (Active Work Items)</div>
+        <span class="badge badge-l1">Engine State Tracker</span>
+      </div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.85rem;">
+          <thead>
+            <tr style="background:#0f172a; border-bottom:1px solid var(--slate-border); color:var(--text-muted);">
+              <th style="padding:0.75rem 1rem;">Work Item ID</th>
+              <th style="padding:0.75rem 1rem;">Source Type</th>
+              <th style="padding:0.75rem 1rem;">Current State</th>
+              <th style="padding:0.75rem 1rem;">Assigned Function</th>
+              <th style="padding:0.75rem 1rem;">Level</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in work_items %}
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:0.75rem 1rem; font-weight:700;">{{ item.work_item_id }}</td>
+              <td style="padding:0.75rem 1rem;">{{ item.source_type }}</td>
+              <td style="padding:0.75rem 1rem;"><span class="badge" style="background:#334155;">{{ item.current_state }}</span></td>
+              <td style="padding:0.75rem 1rem; color:var(--accent-blue);">{{ item.assigned_function }}</td>
+              <td style="padding:0.75rem 1rem;"><span class="badge badge-l{{ item.consequence_level }}">L{{ item.consequence_level }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: COMI Queue, Publisher Queue, Library/Archive Prompts -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem;">
+    <!-- COMI Queue Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">COMI Communication Queue</div>
+        <span class="badge badge-l1">Outgoing Workflow</span>
+      </div>
+      <div class="card-body">
+        {% for comi in comi_queue %}
+        <div style="background:#0f172a; padding:0.75rem; border-radius:6px; margin-bottom:0.75rem; border-left:3px solid var(--accent-blue);">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.25rem;">
+            <span style="color:var(--accent-gold); font-weight:700;">{{ comi.recipient_role }} [{{ comi.channel }}]</span>
+            <span style="color:var(--text-muted);">{{ comi.status }}</span>
+          </div>
+          <div style="font-size:0.85rem; font-weight:700; color:#fff;">{{ comi.subject }}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">{{ comi.message_body }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Library & Archive Prompts -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Library & Archive Prompts</div>
+        <span class="badge badge-l2">Review Queue</span>
+      </div>
+      <div class="card-body">
+        {% for card in review_cards %}
+        <div id="card-node-{{ card.card_id }}" style="background:#0f172a; padding:0.75rem; border-radius:6px; margin-bottom:0.75rem; border-left:3px solid var(--accent-gold);">
+          <strong style="font-size:0.85rem; color:#fff;">{{ card.title }}</strong>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin:0.25rem 0;">{{ card.summary }}</p>
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+            {% for action in card.allowed_actions %}
+            <button onclick="executeAction('{{ card.card_id }}', '{{ action }}')" class="btn btn-warning" style="font-size:0.75rem; padding:0.3rem 0.6rem;">{{ action }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- System Keys & Integrations -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">System Keys & Service Status</div>
+      </div>
+      <div class="card-body">
+        <div class="data-row"><span class="data-label">Dispatch Spine:</span><span class="data-value" style="color:var(--accent-green);">ONLINE</span></div>
+        <div class="data-row"><span class="data-label">COMI Gateway:</span><span class="data-value" style="color:var(--accent-green);">READY</span></div>
+        <div class="data-row"><span class="data-label">Publisher Engine:</span><span class="data-value" style="color:var(--accent-green);">ACTIVE</span></div>
+        <div class="data-row"><span class="data-label">JAXPORT Terminal Key:</span><span class="data-value" style="color:var(--accent-gold);">RENEWAL PENDING</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function executeAction(cardId, action) {
+  fetch('/api/v1/operations/action', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ card_id: cardId, action: action })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    const elem = document.getElementById('card-node-' + cardId);
+    if(elem) elem.style.display = 'none';
+  });
+}
+</script>
+{% endblock %}

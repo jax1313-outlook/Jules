@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}External Stakeholder Portal | Shipment Visibility{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem; gap:1rem;">
+  <div>
+    <h2 style="font-size:1.8rem; font-weight:800; color:#fff;">EXTERNAL STAKEHOLDER PORTAL</h2>
+    <p style="color:var(--accent-blue); font-weight:700;">Broker & Shipper Confidence Window • Level 1 Transport</p>
+  </div>
+  <div>
+    <span class="badge badge-l1" style="font-size:0.9rem; padding:0.5rem 1rem;">SECURED VISIBILITY WINDOW</span>
+  </div>
+</div>
+
+<!-- Load Search / Reference Input -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-header">
+    <div class="card-title">Track Shipment / Retrieve Proof of Delivery</div>
+  </div>
+  <div class="card-body">
+    <form action="{{ url_for('stakeholder_portal') }}" method="GET" style="display:flex; gap:0.5rem;">
+      <input type="text" name="ref" class="search-box" value="{{ shipment.load_number }}" placeholder="Enter Load Number (e.g. L1T-2026-8804)" style="margin-bottom:0;">
+      <button type="submit" class="btn btn-primary" style="white-space:nowrap;">Track Load</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid-layout" style="grid-template-columns: 2fr 1fr;">
+  <!-- Main Column: Sanitized Shipment Status -->
+  <div class="card" style="border: 1px solid var(--accent-blue);">
+    <div class="card-header" style="background:#0f172a;">
+      <div class="card-title">Shipment Visibility: {{ shipment.load_number }}</div>
+      <span class="badge badge-l1">{{ shipment.status }}</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+        <div style="background:#0f172a; padding:1rem; border-radius:6px; border-left:4px solid var(--accent-green);">
+          <h4 style="color:var(--accent-green); margin-bottom:0.5rem; text-transform:uppercase; font-size:0.85rem;">Origin & Pickup</h4>
+          <div style="font-weight:700; font-size:1rem;">{{ shipment.shipper_name }}</div>
+          <div style="color:var(--text-muted); font-size:0.85rem; margin-top:0.25rem;">{{ shipment.pickup_location }}</div>
+        </div>
+
+        <div style="background:#0f172a; padding:1rem; border-radius:6px; border-left:4px solid var(--accent-blue);">
+          <h4 style="color:var(--accent-blue); margin-bottom:0.5rem; text-transform:uppercase; font-size:0.85rem;">Destination & Delivery</h4>
+          <div style="font-weight:700; font-size:1rem;">{{ shipment.consignee_name }}</div>
+          <div style="color:var(--text-muted); font-size:0.85rem; margin-top:0.25rem;">{{ shipment.delivery_location }}</div>
+          <div style="color:var(--accent-gold); font-size:0.85rem; margin-top:0.5rem;">Est. Window: {{ shipment.delivery_window }}</div>
+        </div>
+      </div>
+
+      <!-- Sanitized Route Risk Notice -->
+      <div style="background:#0f172a; padding:1rem; border-radius:6px; margin-bottom:1.25rem; border-left:4px solid var(--accent-gold);">
+        <h4 style="color:var(--accent-gold); margin-bottom:0.5rem; text-transform:uppercase; font-size:0.85rem;">Route Visibility & Corridor Status</h4>
+        <div class="data-row"><span class="data-label">Transit Status:</span><span class="data-value">{{ shipment.route_visibility_status }}</span></div>
+        <div class="data-row"><span class="data-label">Corridor Advisory:</span><span class="data-value" style="color:var(--accent-gold);">{{ shipment.route_risk_public_notice }}</span></div>
+      </div>
+
+      <!-- Document Availability -->
+      <div style="background:#0f172a; padding:1rem; border-radius:6px;">
+        <h4 style="color:var(--text-muted); margin-bottom:0.5rem; text-transform:uppercase; font-size:0.85rem;">Document Package & Proof</h4>
+        <div class="data-row"><span class="data-label">Bill of Lading (BOL):</span><span class="data-value" style="color:var(--accent-green);">{{ shipment.bol_status }}</span></div>
+        <div class="data-row"><span class="data-label">Proof of Delivery (POD):</span><span class="data-value">{{ shipment.pod_availability }}</span></div>
+        <div class="data-row"><span class="data-label">Invoice Packet Status:</span><span class="data-value">{{ shipment.invoice_packet_status }}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Carrier Support Contact -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem;">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Carrier Direct Contact</div>
+      </div>
+      <div class="card-body">
+        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">Have questions regarding this load? Contact Level 1 Transport direct dispatch.</p>
+        <div class="data-row"><span class="data-label">Support:</span><span class="data-value">{{ shipment.contact_support }}</span></div>
+        <a href="{{ url_for('contact') }}" class="btn btn-primary" style="display:block; margin-top:1rem;">Contact Dispatch Direct</a>
+      </div>
+    </div>
+
+    <!-- Security Guardrail Banner -->
+    <div class="card" style="border:1px dashed var(--slate-border);">
+      <div class="card-body" style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
+        🔒 <strong style="color:#fff;">Restricted Visibility Window</strong><br>
+        This portal provides read-only shipment milestone information. Internal system databases, scoring logic, and driver commands are strictly restricted.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
