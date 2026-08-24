@@ -1,0 +1,3 @@
+# Runtime log output from run_portal.sh (line 28: python3 app.py > flask_app.log).
+# Never commit: Flask/Werkzeug stdout can contain the debugger PIN.
+*.log
