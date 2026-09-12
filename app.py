@@ -3,12 +3,29 @@ Dispatch Presentation Layer Flask Application
 Integrates Driver Portal, Operations Portal, External Stakeholder Portal, and Public Website.
 """
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from dispatch_spine import spine_store, CONSEQUENCE_LABELS, LEVEL_0_SILENT_LOG
 import os
+import secrets
+import functools
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+
+# Driver PIN session verification decorator
+def require_driver_pin(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        json_data = request.get_json(silent=True) or {}
+        pin = request.headers.get("X-Driver-PIN") or request.args.get("pin") or json_data.get("pin")
+        if pin == "1234":
+            session["driver_authenticated"] = True
+
+        if not session.get("driver_authenticated"):
+            return jsonify({"status": "error", "message": "Unauthorized. Driver PIN required."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Legacy Alias & Redirect Routes to wire legacy L2-COS / Portal URLs
 @app.route("/portal")
@@ -48,6 +65,7 @@ def contact():
 # ---------------------------------------------------------
 
 @app.route("/driver")
+@require_driver_pin
 def driver_portal():
     trip = spine_store.active_trip
     # Driver cards: filter out silent logs, prioritize active operational alerts
@@ -136,16 +154,35 @@ def stakeholder_portal():
 # ---------------------------------------------------------
 
 @app.route("/api/v1/driver/active-trip", methods=["GET"])
+@require_driver_pin
 def api_driver_active_trip():
     return jsonify(spine_store.active_trip.__dict__)
 
 @app.route("/api/v1/driver/search-loads", methods=["GET"])
+@require_driver_pin
 def api_driver_search_loads():
     query = request.args.get("q", "")
     results = spine_store.search_loads(query)
     return jsonify({"query": query, "count": len(results), "results": results})
 
+@app.route("/api/v1/driver/voice-dictation", methods=["POST"])
+@require_driver_pin
+def api_driver_voice_dictation():
+    data = request.json or {}
+    dictation_text = data.get("dictation", "")
+    if not dictation_text:
+        return jsonify({"status": "error", "message": "Dictation text required"}), 400
+
+    res = spine_store.ingest_voice_dictation(dictation_text)
+    return jsonify({
+        "status": "success",
+        "message": "Voice dictation captured, scored, and submitted to Mike decision queue.",
+        "card_id": res["card"].card_id,
+        "score": res["scored_opportunity"]["score"]
+    })
+
 @app.route("/api/v1/driver/upload-pod", methods=["POST"])
+@require_driver_pin
 def api_driver_upload_pod():
     upload_dir = os.path.join(os.path.dirname(__file__), "uploads")
     os.makedirs(upload_dir, exist_ok=True)
@@ -210,7 +247,6 @@ def api_operations_action():
 
 @app.route("/api/v1/stakeholder/shipment/<load_number>", methods=["GET"])
 def api_stakeholder_shipment(load_number):
-    # Strict Security Guardrail: Exclude internal scoring, internal notes, databases
     role = request.args.get("role", "Broker")
     if load_number == spine_store.active_trip.load_number:
         trip = spine_store.active_trip

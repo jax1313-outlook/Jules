@@ -7,6 +7,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 import uuid
+import sqlite3
+import json
+import os
+
+from workers.joe import JoeWorker
+from workers.intelligence import IntelligenceWorker
+from workers.publisher import PublisherWorker
 
 # Consequence Levels
 LEVEL_0_SILENT_LOG = 0
@@ -115,8 +122,16 @@ class WorkItem:
 
 
 class DispatchSpineDataStore:
-    """In-memory Dispatch Spine repository holding state and cards."""
-    def __init__(self):
+    """SQLite-backed Dispatch Spine repository holding state and cards."""
+    def __init__(self, db_path: str = ":memory:"):
+        self.db_path = db_path
+        self.joe_worker = JoeWorker()
+        self.intelligence_worker = IntelligenceWorker()
+        self.publisher_worker = PublisherWorker()
+
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self._init_sqlite_db()
+
         self.active_trip = ActiveTrip(
             load_number="L1T-2026-8804",
             status="IN_TRANSIT",
@@ -180,11 +195,82 @@ class DispatchSpineDataStore:
         self.comi_cards: List[COMICommunicationCard] = []
         self._bootstrap_sample_data()
 
+    def _init_sqlite_db(self):
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS work_items (
+                work_item_id TEXT PRIMARY KEY,
+                data_json TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS portal_cards (
+                card_id TEXT PRIMARY KEY,
+                data_json TEXT NOT NULL
+            )
+        """)
+        self.conn.commit()
+
+    def persist_card(self, card: PortalCard, work_item: WorkItem):
+        self.portal_cards[card.card_id] = card
+        self.work_items[work_item.work_item_id] = work_item
+
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "INSERT OR REPLACE INTO portal_cards (card_id, data_json) VALUES (?, ?)",
+            (card.card_id, json.dumps(card.__dict__))
+        )
+        cursor.execute(
+            "INSERT OR REPLACE INTO work_items (work_item_id, data_json) VALUES (?, ?)",
+            (work_item.work_item_id, json.dumps(work_item.__dict__))
+        )
+        self.conn.commit()
+
+    def ingest_voice_dictation(self, dictation_text: str) -> Dict[str, Any]:
+        """Process voice dictation via Joe, score via Intelligence, and create a Spine Card."""
+        parsed_opp = self.joe_worker.create_opportunity_card(dictation_text)
+        scored_opp = self.intelligence_worker.evaluate_capacity_and_score(parsed_opp)
+
+        wi_id = f"wi-joe-{uuid.uuid4().hex[:6]}"
+        card_id = f"card-joe-{uuid.uuid4().hex[:6]}"
+
+        work_item = WorkItem(
+            work_item_id=wi_id,
+            created_at=datetime.utcnow().isoformat() + "Z",
+            updated_at=datetime.utcnow().isoformat() + "Z",
+            source_type="voice_dictation",
+            source_id=scored_opp["opportunity_id"],
+            current_state="WAITING_FOR_MIKE",
+            priority="HIGH",
+            consequence_level=LEVEL_3_DECISION,
+            assigned_function="Intelligence",
+            required_action=f"Review scored voice load from {scored_opp['origin_location']} to {scored_opp['destination_location']}",
+            source_confidence="SOURCE_PRESENT",
+            portal_card_id=card_id
+        )
+
+        card = PortalCard(
+            card_id=card_id,
+            work_item_id=wi_id,
+            created_at=datetime.utcnow().isoformat() + "Z",
+            card_level=LEVEL_3_DECISION,
+            card_type="DECISION",
+            title=f"Voice Load Opportunity (${scored_opp['offered_rate']:.0f}) - {scored_opp['origin_location']} to {scored_opp['destination_location']}",
+            summary=f"Parsed from dictation: {scored_opp['raw_dictation']}. Rate: ${scored_opp['offered_rate']:.0f}, RPM: ${scored_opp['rpm']:.2f}, Score: {scored_opp['score']:.1f}/100.",
+            source_refs=["voice_intake_stream"],
+            recommendation=f"Review load parameters. Capacity score is {scored_opp['score']:.1f}/100.",
+            decision_needed="Approve or Reject Voice Load Opportunity",
+            allowed_actions=["APPROVE_VOICE_LOAD", "REJECT_VOICE_LOAD"]
+        )
+
+        self.persist_card(card, work_item)
+        return {"work_item": work_item, "card": card, "scored_opportunity": scored_opp}
+
     def _bootstrap_sample_data(self):
         # Work item 1: Rate Confirmation Review (Level 3 - Decision)
         wi1_id = "wi-101"
         card1_id = "card-101"
-        self.work_items[wi1_id] = WorkItem(
+        wi1 = WorkItem(
             work_item_id=wi1_id,
             created_at="2026-08-18T08:15:00Z",
             updated_at="2026-08-18T08:15:00Z",
@@ -198,7 +284,7 @@ class DispatchSpineDataStore:
             source_confidence="SOURCE_PRESENT",
             portal_card_id=card1_id
         )
-        self.portal_cards[card1_id] = PortalCard(
+        card1 = PortalCard(
             card_id=card1_id,
             work_item_id=wi1_id,
             created_at="2026-08-18T08:15:00Z",
@@ -211,11 +297,12 @@ class DispatchSpineDataStore:
             decision_needed="Approve Rate Confirmation or Request Revision",
             allowed_actions=["APPROVE_RATE_CON", "REJECT_RATE_CON", "REQUEST_REVISION"]
         )
+        self.persist_card(card1, wi1)
 
         # Work item 2: Conflict Card - Missing Lump Sum Receipt (Level 4 - Conflict)
         wi2_id = "wi-102"
         card2_id = "card-102"
-        self.work_items[wi2_id] = WorkItem(
+        wi2 = WorkItem(
             work_item_id=wi2_id,
             created_at="2026-08-18T07:45:00Z",
             updated_at="2026-08-18T07:45:00Z",
@@ -229,7 +316,7 @@ class DispatchSpineDataStore:
             source_confidence="SOURCE_MISSING",
             portal_card_id=card2_id
         )
-        self.portal_cards[card2_id] = PortalCard(
+        card2 = PortalCard(
             card_id=card2_id,
             work_item_id=wi2_id,
             created_at="2026-08-18T07:45:00Z",
@@ -242,11 +329,12 @@ class DispatchSpineDataStore:
             decision_needed="Choose resolution path for missing documentation",
             allowed_actions=["PROMPT_DRIVER_PHOTO", "WAIVE_LUMPER_FEE", "MANUAL_OVERRIDE"]
         )
+        self.persist_card(card2, wi2)
 
         # Work item 3: System Authority / Key Rotation Prompt (Level 5 - Authority)
         wi3_id = "wi-103"
         card3_id = "card-103"
-        self.work_items[wi3_id] = WorkItem(
+        wi3 = WorkItem(
             work_item_id=wi3_id,
             created_at="2026-08-18T06:00:00Z",
             updated_at="2026-08-18T06:00:00Z",
@@ -260,7 +348,7 @@ class DispatchSpineDataStore:
             source_confidence="SOURCE_PRESENT",
             portal_card_id=card3_id
         )
-        self.portal_cards[card3_id] = PortalCard(
+        card3 = PortalCard(
             card_id=card3_id,
             work_item_id=wi3_id,
             created_at="2026-08-18T06:00:00Z",
@@ -273,11 +361,12 @@ class DispatchSpineDataStore:
             decision_needed="Final Mike authorization required to apply new API secret",
             allowed_actions=["AUTHORIZE_KEY_ROTATION", "DEFER_SECURITY_KEY"]
         )
+        self.persist_card(card3, wi3)
 
         # Work item 4: Library Candidate Review (Level 2 - Review)
         wi4_id = "wi-104"
         card4_id = "card-104"
-        self.work_items[wi4_id] = WorkItem(
+        wi4 = WorkItem(
             work_item_id=wi4_id,
             created_at="2026-08-17T16:00:00Z",
             updated_at="2026-08-17T16:00:00Z",
@@ -291,7 +380,7 @@ class DispatchSpineDataStore:
             source_confidence="SOURCE_PRESENT",
             portal_card_id=card4_id
         )
-        self.portal_cards[card4_id] = PortalCard(
+        card4 = PortalCard(
             card_id=card4_id,
             work_item_id=wi4_id,
             created_at="2026-08-17T16:00:00Z",
@@ -304,11 +393,12 @@ class DispatchSpineDataStore:
             decision_needed="Approve Library Promotion or Archive Candidate",
             allowed_actions=["APPROVE_LIBRARY_PROMOTION", "ARCHIVE_CANDIDATE"]
         )
+        self.persist_card(card4, wi4)
 
         # Work item 5: Archive Retention Prompt (Level 2 - Review)
         wi5_id = "wi-105"
         card5_id = "card-105"
-        self.work_items[wi5_id] = WorkItem(
+        wi5 = WorkItem(
             work_item_id=wi5_id,
             created_at="2026-08-17T18:00:00Z",
             updated_at="2026-08-17T18:00:00Z",
@@ -322,7 +412,7 @@ class DispatchSpineDataStore:
             source_confidence="SOURCE_PRESENT",
             portal_card_id=card5_id
         )
-        self.portal_cards[card5_id] = PortalCard(
+        card5 = PortalCard(
             card_id=card5_id,
             work_item_id=wi5_id,
             created_at="2026-08-17T18:00:00Z",
@@ -335,6 +425,7 @@ class DispatchSpineDataStore:
             decision_needed="Confirm Archive Lock",
             allowed_actions=["CONFIRM_ARCHIVE_LOCK", "EXTEND_RETENTION"]
         )
+        self.persist_card(card5, wi5)
 
         # COMI Cards
         self.comi_cards = [

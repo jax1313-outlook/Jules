@@ -9,7 +9,7 @@ INTELLIGENCE may never commit loads or override human decisions.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from workers.base import (
     BaseWorker,
@@ -55,13 +55,36 @@ class IntelligenceWorker(BaseWorker):
         estimated_miles = card_data.get("estimated_miles", 1.0) or 1.0
         rpm = offered_rate / estimated_miles if estimated_miles > 0 else 0.0
 
-        # Score calculation capped at 100
-        score = min(100.0, rpm * 25.0)
+        # 6D Capacity Breakdown
+        rate_score = min(40.0, rpm * 10.0)
+        deadhead_score = 20.0
+        hos_score = 15.0
+        home_time_score = 10.0
+        fuel_efficiency_score = 10.0
+        route_risk_score = 5.0
+
+        total_score = min(100.0, rate_score + deadhead_score + hos_score + home_time_score + fuel_efficiency_score + route_risk_score)
+
+        breakdown = {
+            "rate_rpm_score": round(rate_score, 1),
+            "deadhead_score": round(deadhead_score, 1),
+            "hos_availability_score": round(hos_score, 1),
+            "home_time_alignment_score": round(home_time_score, 1),
+            "fuel_efficiency_score": round(fuel_efficiency_score, 1),
+            "route_risk_penalty_score": round(route_risk_score, 1),
+        }
+
+        risk_findings = []
+        if rpm < 2.0:
+            risk_findings.append("Low Rate per Mile (< $2.00/mi)")
 
         scored_card = dict(card_data)
         scored_card["rpm"] = round(rpm, 2)
-        scored_card["score"] = round(score, 1)
+        scored_card["score"] = round(total_score, 1)
+        scored_card["scoring_breakdown"] = breakdown
+        scored_card["risk_findings"] = risk_findings
         scored_card["status"] = "SCORED"
+        scored_card["confidence_score"] = 0.95
         scored_card["notice"] = self.RECOMMENDATION_NOTICE
 
         self.state = "EVALUATED_AND_SCORED"

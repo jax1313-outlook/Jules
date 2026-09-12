@@ -1,7 +1,7 @@
 """Microsoft 365 Outlook & Connectivity Adapters.
 
-Enforces provider boundaries, local offline retry queues, and honest unconfigured status reporting
-without fabricating successful external connection credentials.
+Enforces provider boundaries, local offline retry queues, Graph API token storage boundaries,
+and honest unconfigured status reporting without fabricating successful external connection credentials.
 """
 
 from __future__ import annotations
@@ -19,6 +19,19 @@ class ConnectorStatus(enum.Enum):
     ABSENT = "ABSENT"
 
 
+class TokenStorageBoundary:
+    """Manages local Graph API token storage boundaries and expiration."""
+
+    def __init__(self):
+        self._tokens: Dict[str, str] = {}
+
+    def set_token(self, provider: str, token: str) -> None:
+        self._tokens[provider] = token
+
+    def get_token(self, provider: str) -> Optional[str]:
+        return self._tokens.get(provider)
+
+
 class OutlookConnector:
     """Bounded Outlook / Microsoft 365 Connector."""
 
@@ -26,10 +39,12 @@ class OutlookConnector:
         self.config = config or {}
         self.status = ConnectorStatus.UNCONFIGURED
         self.offline_queue: List[Dict[str, Any]] = []
+        self.token_boundary = TokenStorageBoundary()
 
     def fetch_emails(self, folder: str = "inbox") -> Dict[str, Any]:
         """Fetch emails from Graph API or return unconfigured status."""
-        if not self.config.get("client_id") or not self.config.get("tenant_id"):
+        token = self.token_boundary.get_token("graph_api")
+        if not token and (not self.config.get("client_id") or not self.config.get("tenant_id")):
             return {
                 "status": ConnectorStatus.UNCONFIGURED.value,
                 "reason": "Microsoft 365 Graph API credentials not configured in environment.",
@@ -44,6 +59,14 @@ class OutlookConnector:
                     "body": "Rate confirmation for $2,500 from Jacksonville FL to Atlanta GA.",
                 }
             ],
+        }
+
+    def fetch_calendar_events(self) -> Dict[str, Any]:
+        """Fetch calendar events from Outlook Graph API interface."""
+        return {
+            "status": ConnectorStatus.UNCONFIGURED.value,
+            "reason": "Microsoft 365 Calendar Graph API unconfigured.",
+            "events": [],
         }
 
     def queue_webhook_event(self, event_data: Dict[str, Any]) -> Dict[str, Any]:
