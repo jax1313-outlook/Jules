@@ -1,4 +1,4 @@
-"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, IFTA, Detention, & Outlook Connectors."""
+"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, IFTA, Settlements, & Outlook Connectors."""
 
 import pytest
 import datetime
@@ -65,6 +65,48 @@ def test_publisher_worker_packet_drafting():
     assert packet["status"] == "DRAFT"
     assert packet["requires_human_review"] is True
     assert "LEVEL 1 TRANSPORT RATE CONFIRMATION" in packet["content"]
+
+
+def test_publisher_driver_settlement_drafting():
+    pub = PublisherWorker()
+    settlement_input = {
+        "driver_id": "DRIVER-88",
+        "load_number": "L1T-2026-8804",
+        "gross_pay": 1200.0,
+        "fuel_deduction": 250.0,
+        "other_deductions": 50.0,
+    }
+    stmt = pub.draft_driver_settlement(settlement_input)
+
+    assert stmt["driver_id"] == "DRIVER-88"
+    assert stmt["gross_pay"] == 1200.0
+    assert stmt["fuel_deduction"] == 250.0
+    assert stmt["net_pay"] == 900.0
+    assert stmt["status"] == "DRAFT_PENDING_APPROVAL"
+    assert stmt["requires_mike_approval"] is True
+
+
+def test_publisher_broker_invoice_verification():
+    pub = PublisherWorker()
+    packet_meta = {
+        "load_number": "L1T-2026-8804",
+        "has_rate_con": True,
+        "has_bol": True,
+        "has_pod": False,
+    }
+    res = pub.verify_broker_invoice_packet(packet_meta)
+
+    assert res["is_complete"] is False
+    assert "PROOF_OF_DELIVERY" in res["missing_documents"]
+    assert res["status"] == "INCOMPLETE_MISSING_DOCS"
+
+
+def test_spine_driver_settlement_payroll_processing():
+    res = spine_store.process_driver_settlement_payroll("DRIVER-01", 1500.0, 300.0)
+
+    assert res["settlement_statement"]["net_pay"] == 1200.0
+    assert res["portal_card"].card_level == 2
+    assert "Driver Settlement Approval" in res["portal_card"].title
 
 
 def test_publisher_ifta_receipt_parsing():

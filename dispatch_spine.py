@@ -237,6 +237,52 @@ class DispatchSpineDataStore:
         )
         self.conn.commit()
 
+    def process_driver_settlement_payroll(self, driver_id: str, gross_pay: float, fuel_deduction: float) -> Dict[str, Any]:
+        """Calculate driver settlement, generate draft statement via Publisher, and issue Level 2 Review card for Mike."""
+        settlement_input = {
+            "driver_id": driver_id,
+            "load_number": self.active_trip.load_number,
+            "gross_pay": gross_pay,
+            "fuel_deduction": fuel_deduction,
+            "other_deductions": 0.0,
+        }
+        draft_stmt = self.publisher_worker.draft_driver_settlement(settlement_input)
+
+        wi_id = f"wi-settle-{uuid.uuid4().hex[:6]}"
+        card_id = f"card-settle-{uuid.uuid4().hex[:6]}"
+
+        work_item = WorkItem(
+            work_item_id=wi_id,
+            created_at=datetime.utcnow().isoformat() + "Z",
+            updated_at=datetime.utcnow().isoformat() + "Z",
+            source_type="driver_settlement",
+            source_id=draft_stmt["settlement_id"],
+            current_state="ROUTED_TO_PUBLISHER",
+            priority="HIGH",
+            consequence_level=LEVEL_2_REVIEW,
+            assigned_function="Publisher",
+            required_action=f"Review draft settlement pay of ${draft_stmt['net_pay']:.2f} for {driver_id}",
+            source_confidence="SOURCE_PRESENT",
+            portal_card_id=card_id
+        )
+
+        card = PortalCard(
+            card_id=card_id,
+            work_item_id=wi_id,
+            created_at=datetime.utcnow().isoformat() + "Z",
+            card_level=LEVEL_2_REVIEW,
+            card_type="REVIEW",
+            title=f"Driver Settlement Approval: {driver_id} (${draft_stmt['net_pay']:.2f})",
+            summary=f"Gross Pay: ${gross_pay:.2f}, Fuel Deduction: ${fuel_deduction:.2f}, Net Pay: ${draft_stmt['net_pay']:.2f}.",
+            source_refs=[draft_stmt["settlement_id"]],
+            recommendation="Review driver pay settlement draft prior to payment authorization.",
+            decision_needed="Approve Driver Settlement or Request Revision",
+            allowed_actions=["APPROVE_SETTLEMENT", "REJECT_SETTLEMENT"]
+        )
+
+        self.persist_card(card, work_item)
+        return {"settlement_statement": draft_stmt, "portal_card": card}
+
     def aggregate_ifta_summary(self, quarter: str = "Q3-2026") -> Dict[str, Any]:
         """Aggregate state-by-state mileage and fuel purchases for quarterly IFTA tax summary."""
         state_summary = {}
