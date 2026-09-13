@@ -4,7 +4,7 @@ Aligned with DISPATCH_SPINE_SPECIFICATION_v1.md, ALERT_GOVERNANCE_DOCTRINE.md, a
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 import uuid
 import sqlite3
@@ -97,6 +97,7 @@ class ActiveTrip:
     pod_status: str  # 'PENDING_UPLOAD', 'UPLOADED', 'APPROVED_BY_MIKE'
     bol_status: str  # 'VERIFIED', 'PENDING'
     invoice_packet_status: str  # 'DRAFTING', 'READY_FOR_REVIEW', 'APPROVED'
+    last_status_update: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
 
 @dataclass
 class WorkItem:
@@ -265,6 +266,54 @@ class DispatchSpineDataStore:
 
         self.persist_card(card, work_item)
         return {"work_item": work_item, "card": card, "scored_opportunity": scored_opp}
+
+    def check_stalled_loads(self, timeout_minutes: int = 180) -> List[PortalCard]:
+        """Watchdog checking for active loads without status updates for >180 minutes."""
+        now = datetime.utcnow()
+        stalled_cards = []
+
+        try:
+            last_update = datetime.fromisoformat(self.active_trip.last_status_update.replace("Z", ""))
+        except Exception:
+            last_update = now
+
+        if (now - last_update) > timedelta(minutes=timeout_minutes) and self.active_trip.status in ["IN_TRANSIT", "AT_PICKUP"]:
+            wi_id = f"wi-stall-{uuid.uuid4().hex[:6]}"
+            card_id = f"card-stall-{uuid.uuid4().hex[:6]}"
+
+            work_item = WorkItem(
+                work_item_id=wi_id,
+                created_at=now.isoformat() + "Z",
+                updated_at=now.isoformat() + "Z",
+                source_type="stalled_load_watchdog",
+                source_id=self.active_trip.load_number,
+                current_state="ROUTED_TO_MANAGER",
+                priority="HIGH",
+                consequence_level=LEVEL_2_REVIEW,
+                assigned_function="Manager",
+                required_action=f"Prompt driver update for stalled Load {self.active_trip.load_number}",
+                source_confidence="SOURCE_PRESENT",
+                portal_card_id=card_id
+            )
+
+            card = PortalCard(
+                card_id=card_id,
+                work_item_id=wi_id,
+                created_at=now.isoformat() + "Z",
+                card_level=LEVEL_2_REVIEW,
+                card_type="REVIEW",
+                title=f"Stalled Load Warning: Load {self.active_trip.load_number}",
+                summary=f"No driver status update received in the past {timeout_minutes} minutes for active load {self.active_trip.load_number}.",
+                source_refs=[self.active_trip.load_number],
+                recommendation="Prompt driver via Joe Cockpit for current location and transit update.",
+                decision_needed="Prompt driver or verify transit status",
+                allowed_actions=["PROMPT_DRIVER", "DISMISS_WARNING"]
+            )
+
+            self.persist_card(card, work_item)
+            stalled_cards.append(card)
+
+        return stalled_cards
 
     def _bootstrap_sample_data(self):
         # Work item 1: Rate Confirmation Review (Level 3 - Decision)

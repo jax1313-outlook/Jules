@@ -1,11 +1,13 @@
-"""Tests for Bounded Workers (Joe, Intelligence, Publisher) & Outlook Connectors."""
+"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, & Outlook Connectors."""
 
 import pytest
+import datetime
 from workers.base import WorkerBoundaryViolationError, HumanCommitmentRequiredError
 from workers.joe import JoeWorker
 from workers.intelligence import IntelligenceWorker
 from workers.publisher import PublisherWorker
 from adapters.outlook_connectors import OutlookConnector, ConnectorStatus
+from dispatch_spine import spine_store
 
 
 def test_joe_worker_dictation_parsing():
@@ -39,6 +41,7 @@ def test_intelligence_worker_scoring():
     assert scored["rpm"] == 4.0
     assert scored["score"] == 100.0
     assert scored["status"] == "SCORED"
+    assert "rate_rpm_score" in scored["scoring_breakdown"]
     assert "Mike decides" in scored["notice"]
 
 
@@ -60,6 +63,33 @@ def test_publisher_worker_packet_drafting():
     assert packet["status"] == "DRAFT"
     assert packet["requires_human_review"] is True
     assert "LEVEL 1 TRANSPORT RATE CONFIRMATION" in packet["content"]
+
+
+def test_publisher_pod_exception_detection():
+    pub = PublisherWorker()
+    pod_meta = {
+        "filename": "pod_l1t_8798.pdf",
+        "has_signature": True,
+        "has_lumper_fee": True,
+        "lumper_receipt_attached": False
+    }
+    finding = pub.detect_pod_exceptions(pod_meta)
+
+    assert finding["status"] == "EXCEPTION_DETECTED"
+    assert "MISSING_LUMPER_RECEIPT_SCAN" in finding["exceptions"]
+    assert finding["consequence_level"] == 4
+    assert finding["requires_mike_adjudication"] is True
+
+
+def test_stalled_load_watchdog():
+    # Simulate active load with last status update 4 hours ago
+    stale_time = (datetime.datetime.utcnow() - datetime.timedelta(hours=4)).isoformat() + "Z"
+    spine_store.active_trip.last_status_update = stale_time
+    stalled_cards = spine_store.check_stalled_loads(timeout_minutes=180)
+
+    assert len(stalled_cards) > 0
+    assert "Stalled Load Warning" in stalled_cards[0].title
+    assert stalled_cards[0].card_level == 2
 
 
 def test_publisher_worker_submit_guard():

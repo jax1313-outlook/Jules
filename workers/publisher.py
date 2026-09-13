@@ -27,6 +27,7 @@ PUBLISHER_CONSTITUTION = WorkerConstitution(
         "completion_packet_assembly",
         "bol_pod_verification",
         "template_selection_and_versioning",
+        "pod_exception_detection",
     ],
     boundaries={
         "may_commit": False,
@@ -34,7 +35,7 @@ PUBLISHER_CONSTITUTION = WorkerConstitution(
         "may_submit_legal": False,
     },
     inputs=["TripData", "ApprovedLibraryFact", "PODImage"],
-    outputs=["DraftRateConfirmationPacket", "CompletionPacket"],
+    outputs=["DraftRateConfirmationPacket", "CompletionPacket", "PODExceptionFinding"],
     relationships=["MANAGER", "MIKE"],
     handoffs=["MIKE"],
     stop_conditions=["Commitment attempt", "Unapproved fact injection"],
@@ -87,6 +88,28 @@ class PublisherWorker(BaseWorker):
             "pod_attached": pod_filename if pod_filename else "MISSING_POD",
             "status": "READY_FOR_MIKE_REVIEW",
             "notice": "This is a draft completion packet. Mike approval required prior to broker submission.",
+        }
+
+    def detect_pod_exceptions(self, pod_metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Detect document exceptions (missing signature, missing lumper receipt, blurred scan)."""
+        filename = pod_metadata.get("filename", "")
+        has_signature = pod_metadata.get("has_signature", True)
+        has_lumper = pod_metadata.get("has_lumper_fee", False)
+        lumper_receipt_present = pod_metadata.get("lumper_receipt_attached", True)
+
+        exceptions = []
+        if not has_signature:
+            exceptions.append("MISSING_CONSIGNEE_SIGNATURE")
+        if has_lumper and not lumper_receipt_present:
+            exceptions.append("MISSING_LUMPER_RECEIPT_SCAN")
+
+        status = "EXCEPTION_DETECTED" if exceptions else "VERIFIED_CLEAR"
+        return {
+            "filename": filename,
+            "status": status,
+            "exceptions": exceptions,
+            "consequence_level": 4 if exceptions else 1,
+            "requires_mike_adjudication": len(exceptions) > 0,
         }
 
     def submit_packet(self, packet_id: str, actor_id: str = "PUBLISHER") -> None:
