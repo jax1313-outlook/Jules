@@ -12,6 +12,7 @@ import functools
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+DRIVER_PIN = os.environ.get("DISPATCH_DRIVER_PIN", "1234")
 
 # Driver PIN session verification decorator
 def require_driver_pin(f):
@@ -19,7 +20,7 @@ def require_driver_pin(f):
     def decorated_function(*args, **kwargs):
         json_data = request.get_json(silent=True) or {}
         pin = request.headers.get("X-Driver-PIN") or request.args.get("pin") or json_data.get("pin")
-        if pin == "1234":
+        if pin and pin == DRIVER_PIN:
             session["driver_authenticated"] = True
 
         if not session.get("driver_authenticated"):
