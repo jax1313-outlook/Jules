@@ -1,4 +1,4 @@
-"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, Detention, & Outlook Connectors."""
+"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, IFTA, Detention, & Outlook Connectors."""
 
 import pytest
 import datetime
@@ -67,8 +67,37 @@ def test_publisher_worker_packet_drafting():
     assert "LEVEL 1 TRANSPORT RATE CONFIRMATION" in packet["content"]
 
 
+def test_publisher_ifta_receipt_parsing():
+    pub = PublisherWorker()
+    receipt_data = {
+        "gallons": 120.5,
+        "jurisdiction_state": "GA",
+        "total_cost": 450.0,
+        "fuel_type": "DIESEL",
+        "tax_paid": True
+    }
+    parsed = pub.parse_ifta_receipt(receipt_data)
+
+    assert parsed["jurisdiction_state"] == "GA"
+    assert parsed["gallons"] == 120.5
+    assert parsed["status"] == "PARSED_FOR_IFTA_REVIEW"
+    assert parsed["requires_mike_approval"] is True
+
+
+def test_ifta_summary_aggregation():
+    spine_store.ifta_fuel_log.append({
+        "jurisdiction_state": "FL",
+        "gallons": 50.0
+    })
+    summary = spine_store.aggregate_ifta_summary("Q3-2026")
+
+    assert summary["quarter"] == "Q3-2026"
+    assert summary["total_miles"] == 355.0
+    assert summary["total_gallons"] == 50.0
+    assert "portal_card_id" in summary
+
+
 def test_detention_time_calculation():
-    # Simulate arrival 4.5 hours ago, departure now (2.5 billable hours @ $75/hr = $187.50)
     arr = (datetime.datetime.utcnow() - datetime.timedelta(hours=4, minutes=30)).isoformat() + "Z"
     dep = datetime.datetime.utcnow().isoformat() + "Z"
 

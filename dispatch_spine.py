@@ -195,6 +195,12 @@ class DispatchSpineDataStore:
             }
         ]
 
+        self.ifta_mileage_log: List[Dict[str, Any]] = [
+            {"state": "FL", "taxable_miles": 145.0, "quarter": "Q3-2026"},
+            {"state": "GA", "taxable_miles": 210.0, "quarter": "Q3-2026"},
+        ]
+        self.ifta_fuel_log: List[Dict[str, Any]] = []
+
         self.work_items: Dict[str, WorkItem] = {}
         self.portal_cards: Dict[str, PortalCard] = {}
         self.comi_cards: List[COMICommunicationCard] = []
@@ -230,6 +236,70 @@ class DispatchSpineDataStore:
             (work_item.work_item_id, json.dumps(work_item.__dict__))
         )
         self.conn.commit()
+
+    def aggregate_ifta_summary(self, quarter: str = "Q3-2026") -> Dict[str, Any]:
+        """Aggregate state-by-state mileage and fuel purchases for quarterly IFTA tax summary."""
+        state_summary = {}
+        total_miles = 0.0
+        total_gallons = 0.0
+
+        for entry in self.ifta_mileage_log:
+            if entry.get("quarter") == quarter:
+                st = entry["state"]
+                state_summary.setdefault(st, {"miles": 0.0, "gallons": 0.0})
+                state_summary[st]["miles"] += entry["taxable_miles"]
+                total_miles += entry["taxable_miles"]
+
+        for fuel in self.ifta_fuel_log:
+            st = fuel["jurisdiction_state"]
+            state_summary.setdefault(st, {"miles": 0.0, "gallons": 0.0})
+            state_summary[st]["gallons"] += fuel["gallons"]
+            total_gallons += fuel["gallons"]
+
+        overall_mpg = round(total_miles / total_gallons, 2) if total_gallons > 0 else 6.50
+
+        wi_id = f"wi-ifta-{uuid.uuid4().hex[:6]}"
+        card_id = f"card-ifta-{uuid.uuid4().hex[:6]}"
+
+        work_item = WorkItem(
+            work_item_id=wi_id,
+            created_at=datetime.utcnow().isoformat() + "Z",
+            updated_at=datetime.utcnow().isoformat() + "Z",
+            source_type="ifta_quarterly_report",
+            source_id=quarter,
+            current_state="ROUTED_TO_PUBLISHER",
+            priority="MEDIUM",
+            consequence_level=LEVEL_2_REVIEW,
+            assigned_function="Publisher",
+            required_action=f"Review draft IFTA Tax Summary for {quarter}",
+            source_confidence="SOURCE_PRESENT",
+            portal_card_id=card_id
+        )
+
+        card = PortalCard(
+            card_id=card_id,
+            work_item_id=wi_id,
+            created_at=datetime.utcnow().isoformat() + "Z",
+            card_level=LEVEL_2_REVIEW,
+            card_type="REVIEW",
+            title=f"IFTA Quarterly Tax Summary ({quarter})",
+            summary=f"Total Miles: {total_miles:.1f}, Total Gallons: {total_gallons:.1f}, Fleet MPG: {overall_mpg:.2f}.",
+            source_refs=["ifta_mileage_log", "ifta_fuel_log"],
+            recommendation="Review state-by-state fuel and mileage breakdown before submission.",
+            decision_needed="Approve IFTA Report Draft or Request Audit",
+            allowed_actions=["APPROVE_IFTA_DRAFT", "REQUEST_AUDIT"]
+        )
+
+        self.persist_card(card, work_item)
+
+        return {
+            "quarter": quarter,
+            "total_miles": total_miles,
+            "total_gallons": total_gallons,
+            "overall_mpg": overall_mpg,
+            "state_breakdown": state_summary,
+            "portal_card_id": card_id,
+        }
 
     def calculate_detention(self) -> Dict[str, Any]:
         """Calculate total detention time and billable charges exceeding 2-hour free allowance."""

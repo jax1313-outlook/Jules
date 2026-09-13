@@ -29,14 +29,15 @@ PUBLISHER_CONSTITUTION = WorkerConstitution(
         "template_selection_and_versioning",
         "pod_exception_detection",
         "detention_billing_incorporation",
+        "ifta_fuel_receipt_parsing",
     ],
     boundaries={
         "may_commit": False,
         "may_invent_facts": False,
         "may_submit_legal": False,
     },
-    inputs=["TripData", "ApprovedLibraryFact", "PODImage"],
-    outputs=["DraftRateConfirmationPacket", "CompletionPacket", "PODExceptionFinding"],
+    inputs=["TripData", "ApprovedLibraryFact", "PODImage", "FuelReceiptMetadata"],
+    outputs=["DraftRateConfirmationPacket", "CompletionPacket", "PODExceptionFinding", "IFTAReceiptSummary"],
     relationships=["MANAGER", "MIKE"],
     handoffs=["MIKE"],
     stop_conditions=["Commitment attempt", "Unapproved fact injection"],
@@ -52,6 +53,7 @@ class PublisherWorker(BaseWorker):
         self.templates = {
             "RATE_CONFIRMATION": "Level 1 Transport Rate Con Template v2.1",
             "COMPLETION_PACKET": "Level 1 Transport Delivery Proof Packet v1.0",
+            "IFTA_SUMMARY": "Level 1 Transport Quarterly IFTA Tax Summary v1.0",
         }
 
     def draft_rate_confirmation_packet(self, trip_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -100,6 +102,26 @@ class PublisherWorker(BaseWorker):
             "detention_fee": detention_summary.get("detention_fee", 0.0),
             "status": "READY_FOR_MIKE_REVIEW",
             "notice": "This is a draft completion packet. Mike approval required prior to broker submission.",
+        }
+
+    def parse_ifta_receipt(self, receipt_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Parse fuel receipt details for IFTA compliance reporting."""
+        gallons = receipt_data.get("gallons", 0.0)
+        jurisdiction = receipt_data.get("jurisdiction_state", "FL").upper()
+        total_cost = receipt_data.get("total_cost", 0.0)
+        fuel_type = receipt_data.get("fuel_type", "DIESEL")
+        tax_paid = receipt_data.get("tax_paid", True)
+
+        receipt_id = f"IFTA-REC-{int(datetime.datetime.now().timestamp())}"
+        return {
+            "receipt_id": receipt_id,
+            "jurisdiction_state": jurisdiction,
+            "gallons": gallons,
+            "total_cost": total_cost,
+            "fuel_type": fuel_type,
+            "tax_paid": tax_paid,
+            "status": "PARSED_FOR_IFTA_REVIEW",
+            "requires_mike_approval": True,
         }
 
     def detect_pod_exceptions(self, pod_metadata: Dict[str, Any]) -> Dict[str, Any]:
