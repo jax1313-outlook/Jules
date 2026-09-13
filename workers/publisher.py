@@ -28,6 +28,7 @@ PUBLISHER_CONSTITUTION = WorkerConstitution(
         "bol_pod_verification",
         "template_selection_and_versioning",
         "pod_exception_detection",
+        "detention_billing_incorporation",
     ],
     boundaries={
         "may_commit": False,
@@ -57,13 +58,17 @@ class PublisherWorker(BaseWorker):
         """Draft a rate confirmation summary packet from approved trip facts."""
         load_number = trip_data.get("load_number", "L1T-DRAFT")
         rate = trip_data.get("offered_rate", 0.0)
+        detention_fee = trip_data.get("detention_fee", 0.0)
+        total_rate = rate + detention_fee
 
         packet_id = f"PKT-{load_number}"
         content = (
             f"=== LEVEL 1 TRANSPORT RATE CONFIRMATION SUMMARY (DRAFT) ===\n"
             f"TEMPLATE VERSION: {self.templates['RATE_CONFIRMATION']}\n"
             f"LOAD NUMBER: {load_number}\n"
-            f"OFFERED RATE: ${rate:.2f}\n"
+            f"BASE RATE: ${rate:.2f}\n"
+            f"DETENTION CHARGE: ${detention_fee:.2f}\n"
+            f"TOTAL INVOICE DRAFT: ${total_rate:.2f}\n"
             f"STATUS: DRAFT - PENDING MIKE APPROVAL\n"
             f"DRAFTED AT: {datetime.datetime.now(datetime.timezone.utc).isoformat()}\n"
         )
@@ -73,19 +78,26 @@ class PublisherWorker(BaseWorker):
             "packet_id": packet_id,
             "load_number": load_number,
             "template_used": self.templates["RATE_CONFIRMATION"],
+            "base_rate": rate,
+            "detention_fee": detention_fee,
+            "total_rate": total_rate,
             "status": "DRAFT",
             "content": content,
             "requires_human_review": True,
         }
 
-    def assemble_completion_packet(self, load_number: str, pod_filename: Optional[str] = None) -> Dict[str, Any]:
-        """Assemble delivery completion packet (BOL + POD + Invoice Summary)."""
+    def assemble_completion_packet(self, load_number: str, pod_filename: Optional[str] = None, detention_info: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Assemble delivery completion packet (BOL + POD + Invoice Summary + Detention Breakdown)."""
         packet_id = f"COMP-PKT-{load_number}"
+        detention_summary = detention_info or {"billable_hours": 0.0, "detention_fee": 0.0}
+
         return {
             "packet_id": packet_id,
             "load_number": load_number,
             "template_used": self.templates["COMPLETION_PACKET"],
             "pod_attached": pod_filename if pod_filename else "MISSING_POD",
+            "detention_billable_hours": detention_summary.get("billable_hours", 0.0),
+            "detention_fee": detention_summary.get("detention_fee", 0.0),
             "status": "READY_FOR_MIKE_REVIEW",
             "notice": "This is a draft completion packet. Mike approval required prior to broker submission.",
         }

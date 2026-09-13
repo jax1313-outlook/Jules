@@ -1,4 +1,4 @@
-"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, & Outlook Connectors."""
+"""Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, Detention, & Outlook Connectors."""
 
 import pytest
 import datetime
@@ -56,13 +56,29 @@ def test_publisher_worker_packet_drafting():
     trip_data = {
         "load_number": "L1T-2026-9901",
         "offered_rate": 2500.0,
+        "detention_fee": 150.0,
     }
     packet = pub.draft_rate_confirmation_packet(trip_data)
 
     assert packet["load_number"] == "L1T-2026-9901"
+    assert packet["total_rate"] == 2650.0
     assert packet["status"] == "DRAFT"
     assert packet["requires_human_review"] is True
     assert "LEVEL 1 TRANSPORT RATE CONFIRMATION" in packet["content"]
+
+
+def test_detention_time_calculation():
+    # Simulate arrival 4.5 hours ago, departure now (2.5 billable hours @ $75/hr = $187.50)
+    arr = (datetime.datetime.utcnow() - datetime.timedelta(hours=4, minutes=30)).isoformat() + "Z"
+    dep = datetime.datetime.utcnow().isoformat() + "Z"
+
+    spine_store.active_trip.arrival_timestamp = arr
+    spine_store.active_trip.departure_timestamp = dep
+
+    det = spine_store.calculate_detention()
+    assert det["billable_hours"] == 2.5
+    assert det["detention_fee"] == 187.50
+    assert det["status"] == "BILLABLE_DETENTION"
 
 
 def test_publisher_pod_exception_detection():
@@ -82,7 +98,6 @@ def test_publisher_pod_exception_detection():
 
 
 def test_stalled_load_watchdog():
-    # Simulate active load with last status update 4 hours ago
     stale_time = (datetime.datetime.utcnow() - datetime.timedelta(hours=4)).isoformat() + "Z"
     spine_store.active_trip.last_status_update = stale_time
     stalled_cards = spine_store.check_stalled_loads(timeout_minutes=180)

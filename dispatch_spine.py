@@ -98,6 +98,10 @@ class ActiveTrip:
     bol_status: str  # 'VERIFIED', 'PENDING'
     invoice_packet_status: str  # 'DRAFTING', 'READY_FOR_REVIEW', 'APPROVED'
     last_status_update: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    arrival_timestamp: Optional[str] = None
+    departure_timestamp: Optional[str] = None
+    detention_rate_per_hour: float = 75.0
+    free_allowance_hours: float = 2.0
 
 @dataclass
 class WorkItem:
@@ -226,6 +230,29 @@ class DispatchSpineDataStore:
             (work_item.work_item_id, json.dumps(work_item.__dict__))
         )
         self.conn.commit()
+
+    def calculate_detention(self) -> Dict[str, Any]:
+        """Calculate total detention time and billable charges exceeding 2-hour free allowance."""
+        if not self.active_trip.arrival_timestamp or not self.active_trip.departure_timestamp:
+            return {"billable_hours": 0.0, "detention_fee": 0.0, "status": "NO_DETENTION"}
+
+        try:
+            arr = datetime.fromisoformat(self.active_trip.arrival_timestamp.replace("Z", ""))
+            dep = datetime.fromisoformat(self.active_trip.departure_timestamp.replace("Z", ""))
+            total_hours = max(0.0, (dep - arr).total_seconds() / 3600.0)
+            billable_hours = max(0.0, total_hours - self.active_trip.free_allowance_hours)
+            fee = billable_hours * self.active_trip.detention_rate_per_hour
+
+            return {
+                "total_hours_at_facility": round(total_hours, 2),
+                "free_allowance_hours": self.active_trip.free_allowance_hours,
+                "billable_hours": round(billable_hours, 2),
+                "detention_rate_per_hour": self.active_trip.detention_rate_per_hour,
+                "detention_fee": round(fee, 2),
+                "status": "BILLABLE_DETENTION" if fee > 0 else "FREE_ALLOWANCE_EXCEEDED" if billable_hours > 0 else "CLEAR"
+            }
+        except Exception:
+            return {"billable_hours": 0.0, "detention_fee": 0.0, "status": "CALCULATION_ERROR"}
 
     def ingest_voice_dictation(self, dictation_text: str) -> Dict[str, Any]:
         """Process voice dictation via Joe, score via Intelligence, and create a Spine Card."""
