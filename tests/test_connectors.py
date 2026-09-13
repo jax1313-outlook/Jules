@@ -1,7 +1,7 @@
 """Tests for Bounded Workers (Joe, Intelligence, Publisher), Spine Watchdogs, IFTA, Settlements, & Outlook Connectors."""
 
 import pytest
-import datetime
+from datetime import datetime, timedelta, timezone
 from workers.base import WorkerBoundaryViolationError, HumanCommitmentRequiredError
 from workers.joe import JoeWorker
 from workers.intelligence import IntelligenceWorker
@@ -140,8 +140,9 @@ def test_ifta_summary_aggregation():
 
 
 def test_detention_time_calculation():
-    arr = (datetime.datetime.utcnow() - datetime.timedelta(hours=4, minutes=30)).isoformat() + "Z"
-    dep = datetime.datetime.utcnow().isoformat() + "Z"
+    now = datetime.now(timezone.utc)
+    arr = (now - timedelta(hours=4, minutes=30)).isoformat()
+    dep = now.isoformat()
 
     spine_store.active_trip.arrival_timestamp = arr
     spine_store.active_trip.departure_timestamp = dep
@@ -169,7 +170,8 @@ def test_publisher_pod_exception_detection():
 
 
 def test_stalled_load_watchdog():
-    stale_time = (datetime.datetime.utcnow() - datetime.timedelta(hours=4)).isoformat() + "Z"
+    now = datetime.now(timezone.utc)
+    stale_time = (now - timedelta(hours=4)).isoformat()
     spine_store.active_trip.last_status_update = stale_time
     stalled_cards = spine_store.check_stalled_loads(timeout_minutes=180)
 

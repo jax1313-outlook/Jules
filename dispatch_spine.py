@@ -4,7 +4,7 @@ Aligned with DISPATCH_SPINE_SPECIFICATION_v1.md, ALERT_GOVERNANCE_DOCTRINE.md, a
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 import uuid
 import sqlite3
@@ -97,7 +97,7 @@ class ActiveTrip:
     pod_status: str  # 'PENDING_UPLOAD', 'UPLOADED', 'APPROVED_BY_MIKE'
     bol_status: str  # 'VERIFIED', 'PENDING'
     invoice_packet_status: str  # 'DRAFTING', 'READY_FOR_REVIEW', 'APPROVED'
-    last_status_update: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    last_status_update: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     arrival_timestamp: Optional[str] = None
     departure_timestamp: Optional[str] = None
     detention_rate_per_hour: float = 75.0
@@ -251,10 +251,11 @@ class DispatchSpineDataStore:
         wi_id = f"wi-settle-{uuid.uuid4().hex[:6]}"
         card_id = f"card-settle-{uuid.uuid4().hex[:6]}"
 
+        now_str = datetime.now(timezone.utc).isoformat()
         work_item = WorkItem(
             work_item_id=wi_id,
-            created_at=datetime.utcnow().isoformat() + "Z",
-            updated_at=datetime.utcnow().isoformat() + "Z",
+            created_at=now_str,
+            updated_at=now_str,
             source_type="driver_settlement",
             source_id=draft_stmt["settlement_id"],
             current_state="ROUTED_TO_PUBLISHER",
@@ -269,7 +270,7 @@ class DispatchSpineDataStore:
         card = PortalCard(
             card_id=card_id,
             work_item_id=wi_id,
-            created_at=datetime.utcnow().isoformat() + "Z",
+            created_at=now_str,
             card_level=LEVEL_2_REVIEW,
             card_type="REVIEW",
             title=f"Driver Settlement Approval: {driver_id} (${draft_stmt['net_pay']:.2f})",
@@ -307,10 +308,11 @@ class DispatchSpineDataStore:
         wi_id = f"wi-ifta-{uuid.uuid4().hex[:6]}"
         card_id = f"card-ifta-{uuid.uuid4().hex[:6]}"
 
+        now_str = datetime.now(timezone.utc).isoformat()
         work_item = WorkItem(
             work_item_id=wi_id,
-            created_at=datetime.utcnow().isoformat() + "Z",
-            updated_at=datetime.utcnow().isoformat() + "Z",
+            created_at=now_str,
+            updated_at=now_str,
             source_type="ifta_quarterly_report",
             source_id=quarter,
             current_state="ROUTED_TO_PUBLISHER",
@@ -325,7 +327,7 @@ class DispatchSpineDataStore:
         card = PortalCard(
             card_id=card_id,
             work_item_id=wi_id,
-            created_at=datetime.utcnow().isoformat() + "Z",
+            created_at=now_str,
             card_level=LEVEL_2_REVIEW,
             card_type="REVIEW",
             title=f"IFTA Quarterly Tax Summary ({quarter})",
@@ -353,8 +355,8 @@ class DispatchSpineDataStore:
             return {"billable_hours": 0.0, "detention_fee": 0.0, "status": "NO_DETENTION"}
 
         try:
-            arr = datetime.fromisoformat(self.active_trip.arrival_timestamp.replace("Z", ""))
-            dep = datetime.fromisoformat(self.active_trip.departure_timestamp.replace("Z", ""))
+            arr = datetime.fromisoformat(self.active_trip.arrival_timestamp.replace("Z", "+00:00"))
+            dep = datetime.fromisoformat(self.active_trip.departure_timestamp.replace("Z", "+00:00"))
             total_hours = max(0.0, (dep - arr).total_seconds() / 3600.0)
             billable_hours = max(0.0, total_hours - self.active_trip.free_allowance_hours)
             fee = billable_hours * self.active_trip.detention_rate_per_hour
@@ -378,10 +380,11 @@ class DispatchSpineDataStore:
         wi_id = f"wi-joe-{uuid.uuid4().hex[:6]}"
         card_id = f"card-joe-{uuid.uuid4().hex[:6]}"
 
+        now_str = datetime.now(timezone.utc).isoformat()
         work_item = WorkItem(
             work_item_id=wi_id,
-            created_at=datetime.utcnow().isoformat() + "Z",
-            updated_at=datetime.utcnow().isoformat() + "Z",
+            created_at=now_str,
+            updated_at=now_str,
             source_type="voice_dictation",
             source_id=scored_opp["opportunity_id"],
             current_state="WAITING_FOR_MIKE",
@@ -396,7 +399,7 @@ class DispatchSpineDataStore:
         card = PortalCard(
             card_id=card_id,
             work_item_id=wi_id,
-            created_at=datetime.utcnow().isoformat() + "Z",
+            created_at=now_str,
             card_level=LEVEL_3_DECISION,
             card_type="DECISION",
             title=f"Voice Load Opportunity (${scored_opp['offered_rate']:.0f}) - {scored_opp['origin_location']} to {scored_opp['destination_location']}",
@@ -412,11 +415,11 @@ class DispatchSpineDataStore:
 
     def check_stalled_loads(self, timeout_minutes: int = 180) -> List[PortalCard]:
         """Watchdog checking for active loads without status updates for >180 minutes."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         stalled_cards = []
 
         try:
-            last_update = datetime.fromisoformat(self.active_trip.last_status_update.replace("Z", ""))
+            last_update = datetime.fromisoformat(self.active_trip.last_status_update.replace("Z", "+00:00"))
         except Exception:
             last_update = now
 
@@ -424,10 +427,11 @@ class DispatchSpineDataStore:
             wi_id = f"wi-stall-{uuid.uuid4().hex[:6]}"
             card_id = f"card-stall-{uuid.uuid4().hex[:6]}"
 
+            now_str = now.isoformat()
             work_item = WorkItem(
                 work_item_id=wi_id,
-                created_at=now.isoformat() + "Z",
-                updated_at=now.isoformat() + "Z",
+                created_at=now_str,
+                updated_at=now_str,
                 source_type="stalled_load_watchdog",
                 source_id=self.active_trip.load_number,
                 current_state="ROUTED_TO_MANAGER",
@@ -442,7 +446,7 @@ class DispatchSpineDataStore:
             card = PortalCard(
                 card_id=card_id,
                 work_item_id=wi_id,
-                created_at=now.isoformat() + "Z",
+                created_at=now_str,
                 card_level=LEVEL_2_REVIEW,
                 card_type="REVIEW",
                 title=f"Stalled Load Warning: Load {self.active_trip.load_number}",
